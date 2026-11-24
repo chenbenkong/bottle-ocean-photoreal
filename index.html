@@ -95,7 +95,7 @@
 (function(){
   function layout(){
     var vw=innerWidth, vh=innerHeight;
-    var W=Math.min(vw*0.92, vh*1.78), H=W/2, s=W/1000, cx=vw/2, cy=vh*0.50;
+    var W=Math.min(vw*0.80, vh*1.5), H=W/2, s=W/1000, cx=vw/2-20*s, cy=vh*0.50;
     function pt(x,y){return (cx+x*s).toFixed(1)+' '+(cy+y*s).toFixed(1);}
     var d='M '+pt(-480,0)+' C '+pt(-480,-150)+' '+pt(-390,-230)+' '+pt(-220,-240)+
           ' L '+pt(180,-240)+' C '+pt(320,-240)+' '+pt(400,-190)+' '+pt(400,-100)+
