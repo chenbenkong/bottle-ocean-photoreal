@@ -23,6 +23,7 @@
     radial-gradient(ellipse at 28% 18%,rgba(255,255,255,.12),transparent 42%),
     radial-gradient(ellipse at 78% 82%,rgba(160,230,220,.10),transparent 46%);}
 .glass::before{content:"";position:absolute;left:24%;top:14%;width:9%;height:46%;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,.30),rgba(255,255,255,.05) 60%,transparent);filter:blur(6px);transform:rotate(-7deg)}
+.rim{position:fixed;inset:0;z-index:2;pointer-events:none;width:100%;height:100%;overflow:visible}
 .glass::after{content:"";position:absolute;right:14%;bottom:16%;width:6%;height:20%;border-radius:50%;background:linear-gradient(0deg,rgba(210,255,245,.22),transparent);filter:blur(5px);transform:rotate(12deg)}
 /* props layer: translate+scale applied by JS so everything tracks the bottle */
 .props{position:fixed;left:0;top:0;z-index:3;pointer-events:none;transform-origin:0 0;width:0;height:0}
@@ -77,6 +78,7 @@
   <div class="error" id="error"><div><h2>WebGL unavailable</h2></div></div>
 </main>
 <div class="glass" id="glass"></div>
+<svg class="rim" id="rim" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><defs><linearGradient id="rimG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eafff9" stop-opacity=".85"/><stop offset=".5" stop-color="#bfe4dc" stop-opacity=".12"/><stop offset="1" stop-color="#dff7f0" stop-opacity=".45"/></linearGradient><filter id="rimBlur"><feGaussianBlur stdDeviation="2"/></filter></defs><path id="rimPath" fill="none" stroke="url(#rimG)" stroke-width="2.5"/></svg>
 <div class="props" id="props">
   <div class="cork"></div><div class="wax"></div><div class="rope"></div><div class="tag">瓶中沧海<br>OCEAN · VII</div>
   <div class="cradle"><i class="a"></i><b></b><i class="b"></i></div>
@@ -103,6 +105,7 @@
           ' L '+pt(-220,240)+' C '+pt(-390,230)+' '+pt(-480,150)+' '+pt(-480,0)+' Z';
     document.getElementById('app').style.clipPath="path('"+d+"')";
     document.getElementById('glass').style.clipPath="path('"+d+"')";
+    var rim=document.getElementById('rim');rim.setAttribute('viewBox','0 0 '+vw+' '+vh);document.getElementById('rimPath').setAttribute('d',d);
     document.getElementById('props').style.transform='translate('+cx+'px,'+cy+'px) scale('+s+')';
   }
   addEventListener('resize',layout); layout();
