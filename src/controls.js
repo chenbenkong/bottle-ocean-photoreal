@@ -3,8 +3,8 @@ let T=null;
 function grab(){T=window.__tideline;if(!T)return requestAnimationFrame(grab);
   T.set({autopilot:false});
   const drift=document.getElementById("drift");if(drift){drift.classList.remove("on");drift.setAttribute("aria-pressed","false");const s=drift.querySelector("span");if(s)s.textContent="Camera drift off";}
-  T.look(3.5,2.2,12,0,0.8,-7);
-  const views=[[3.5,2.2,12],[ -6,3.0,10],[2,1.4,9],[5,4.5,11]];let vi=0;
+  T.look(2.5,3.0,17,0,0.8,-7);
+  const views=[[2.5,3.0,17],[-8,3.5,14],[1,2.2,13],[4,5,15]];let vi=0;
   const clearMode=()=>T.set({wind:2.6,waveHeight:.72,foam:.42,clouds:.24,rain:0,time:14,exposure:1.08});
   let storm=false,night=false,speed=0,tod=14;
   const timeEl=document.getElementById("sTime"),seaEl=document.getElementById("sSea"),fpsEl=document.getElementById("fps");
