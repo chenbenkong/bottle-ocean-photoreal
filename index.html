@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark">
+<title>瓶中沧海 · Ocean in a Bottle</title>
+<style>
+:root{color-scheme:dark;--ivory:#f3e7cd;--gold:#d5aa67}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0b0908;font-family:Inter,"PingFang SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+/* physically based desk backdrop */
+.desk{position:fixed;inset:0;z-index:0;background:
+ radial-gradient(ellipse 60% 45% at 50% 62%,rgba(120,78,42,.35),transparent 70%),
+ repeating-linear-gradient(92deg,#2a1a10 0 3px,#312015 3px 6px,#28180e 6px 9px),
+ linear-gradient(180deg,#1a1109,#0b0806);}
+.desk::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 55%,transparent 30%,rgba(0,0,0,.72) 100%)}
+/* the scene canvas is clipped to a lying bottle via CSS clip-path polygon approximation of an SVG path */
+#app{position:fixed;z-index:1;inset:0;width:100vw;height:100vh;clip-path:path('M 210 400 C 210 250 300 170 470 160 L 870 160 C 1010 160 1090 210 1090 300 L 1090 340 C 1090 370 1120 382 1170 382 L 1170 418 C 1120 418 1090 430 1090 460 L 1090 500 C 1090 590 1010 640 870 640 L 470 640 C 300 630 210 550 210 400 Z');}
+#stage,#stage canvas{position:absolute;inset:0;width:100%;height:100%}
+#stage canvas{display:block;cursor:grab}
+/* glass optical edge drawn on top of the clipped scene */
+.glass{position:fixed;z-index:2;inset:0;pointer-events:none;
+ clip-path:path('M 210 400 C 210 250 300 170 470 160 L 870 160 C 1010 160 1090 210 1090 300 L 1090 340 C 1090 370 1120 382 1170 382 L 1170 418 C 1120 418 1090 430 1090 460 L 1090 500 C 1090 590 1010 640 870 640 L 470 640 C 300 630 210 550 210 400 Z');
+ box-shadow:inset 0 0 60px 12px rgba(180,235,225,.18),inset 0 0 160px 30px rgba(120,190,180,.10);
+ background:linear-gradient(115deg,rgba(255,255,255,.10) 0%,transparent 18%,transparent 70%,rgba(190,240,235,.08) 88%,rgba(255,255,255,.14) 100%);}
+/* specular streak */
+.glass::before{content:"";position:absolute;left:26%;top:20%;width:10%;height:44%;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,.22),transparent);filter:blur(7px);transform:rotate(-8deg)}
+/* cork + wax + tag at the neck (right side) */
+.neck{position:fixed;z-index:3;right:calc(50% - 585px);top:382px;width:150px;height:78px;transform:translateX(0)}
+.cork{position:absolute;left:74px;top:6px;width:64px;height:66px;border-radius:8px 14px 14px 8px;background:repeating-linear-gradient(168deg,#a87a45 0 4px,#c09156 4px 8px,#8f6637 8px 11px);box-shadow:inset -8px 0 14px #4a3218aa,0 8px 18px #0008}
+.wax{position:absolute;left:112px;top:2px;width:34px;height:74px;border-radius:6px 16px 16px 6px;background:linear-gradient(180deg,#c94238,#8e231d);box-shadow:inset -6px 0 10px #4d0f0baa,0 6px 14px #0007}
+.rope{position:absolute;left:70px;top:20px;width:70px;height:50px;border:3px solid #8a6b3e;border-radius:50%;border-left-color:transparent;border-right-color:transparent;transform:rotate(6deg)}
+.tag{position:absolute;left:96px;top:96px;width:92px;height:52px;background:linear-gradient(135deg,#e8d9b0,#c9b98c);border-radius:3px;transform:rotate(-7deg);box-shadow:0 10px 22px #0007;color:#5a4a35;font:700 12px/1.4 Georgia,serif;letter-spacing:.08em;display:flex;align-items:center;justify-content:center;text-align:center}
+.tag::before{content:"";position:absolute;left:44px;top:-34px;width:2px;height:36px;background:#8a6b3e}
+/* wooden cradle under the bottle */
+.cradle{position:fixed;z-index:3;left:50%;top:600px;width:760px;height:120px;transform:translateX(-52%);pointer-events:none}
+.cradle i{position:absolute;bottom:0;width:120px;height:96px;background:linear-gradient(90deg,#3a2414,#6b4428 40%,#3a2414);border-radius:10px 10px 4px 4px;box-shadow:0 14px 26px #0009}
+.cradle i:first-child{left:60px;transform:rotate(10deg)}.cradle i:last-child{right:60px;transform:rotate(-10deg)}
+.cradle b{position:absolute;left:20px;right:20px;bottom:0;height:34px;background:linear-gradient(180deg,#5a3a22,#2e1b0f);border-radius:6px;box-shadow:0 16px 30px #000a}
+/* book + telescope props */
+.book{position:fixed;z-index:3;left:7%;bottom:7%;width:190px;height:70px;background:linear-gradient(180deg,#6a342c,#3f1f1a);border-radius:4px;transform:perspective(400px) rotateX(18deg) rotateZ(-8deg);box-shadow:14px 18px 26px #0009;pointer-events:none}
+.book::before{content:"";position:absolute;inset:8px 10px 8px 16px;background:repeating-linear-gradient(#e4d7b6 0 2px,#cbbd99 2px 3px);border-radius:2px}
+.scope{position:fixed;z-index:3;right:6%;bottom:12%;width:230px;height:34px;background:linear-gradient(180deg,#d9b45e,#7a5c22);border-radius:18px;transform:rotate(-13deg);box-shadow:0 18px 26px #0009;pointer-events:none}
+.scope::before{content:"";position:absolute;left:-12px;top:-4px;width:26px;height:42px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#1a1a18,#3a2c12);border:3px solid #b28c3c}
+/* UI */
+#ui{position:fixed;z-index:5;inset:0;pointer-events:none;color:var(--ivory)}
+.brand{position:absolute;top:34px;left:40px;text-shadow:0 2px 18px #000b}
+.brand .eyebrow{font-size:10px;letter-spacing:.34em;color:var(--gold);margin-bottom:8px}
+.brand h1{font:400 clamp(26px,3.2vw,48px)/1 Georgia,"Songti SC",serif;letter-spacing:.16em;margin:0 0 6px}
+.brand .sub{font:italic 12px/1.4 Georgia,serif;color:#d8cbb4aa;letter-spacing:.1em}
+.status{position:absolute;top:32px;right:34px;padding:12px 16px;border:1px solid #e4c99430;border-radius:3px;background:#171511b8;backdrop-filter:blur(10px);font-size:10px;letter-spacing:.12em;color:#c8bda8;line-height:1.9}
+.status b{color:#f0d69d;font-weight:600}
+.controls{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);display:flex;gap:6px;padding:7px;border:1px solid #e8d3ac30;border-radius:999px;background:#171511cc;backdrop-filter:blur(14px);pointer-events:auto}
+.controls button{appearance:none;border:0;border-radius:999px;background:transparent;color:#bcb5a8;font:500 11px/1 Inter,"Microsoft YaHei",sans-serif;letter-spacing:.06em;padding:11px 15px;cursor:pointer;transition:.2s}
+.controls button:hover,.controls button.on{color:#1c1710;background:linear-gradient(135deg,#f0d69d,#d5aa67)}
+.hint{position:absolute;left:40px;bottom:28px;font-size:10px;letter-spacing:.12em;color:#e8dcc499;line-height:1.9;text-shadow:0 2px 10px #000}
+.hint b{color:#f0d69d}
+/* keep tideline's required DOM but hidden */
+#panel,#drift,#loading,.vignette,.grain,.copy,.topbar,.error{display:none!important}
+@media(max-width:900px){.brand{top:18px;left:18px}.status{top:14px;right:14px;font-size:9px}.hint{display:none}.neck,.cradle,.book,.scope{transform-origin:center}.cradle{width:70vw}.neck{right:4%}}
+</style></head>
+<body>
+<div class="desk"></div>
+<main id="app">
+  <div id="stage" aria-hidden="true"></div>
+  <div class="vignette"></div><div class="grain"></div>
+  <header class="topbar"><div class="brand"><span class="brand-mark"></span><span><span class="brand-name">TIDELINE</span><span class="brand-sub">Local ocean laboratory</span></span></div><div class="status" id="status">WebGL</div></header>
+  <aside class="panel" id="panel"><div class="panel-head"><div class="panel-title">Environment<small>Live shader parameters</small></div><button class="collapse" id="collapse"><span></span></button></div><div class="panel-body">
+    <p class="label">Sea states</p><div class="presets">
+    <button class="preset" data-preset="Calm">Calm</button><button class="preset active" data-preset="Azure">Azure</button><button class="preset" data-preset="Golden">Golden</button><button class="preset" data-preset="Rain">Rain</button><button class="preset" data-preset="Storm">Storm</button><button class="preset" data-preset="Tempest">Tempest</button></div>
+    <p class="label">Simulation</p><div class="controls2">
+    <div class="control"><label for="wind">Wind</label><input id="wind" type="range" min="0.2" max="8" step="0.1" value="2.6"><output id="wind-out">2.6 m/s</output></div>
+    <div class="control"><label for="waveHeight">Wave height</label><input id="waveHeight" type="range" min="0.15" max="1.8" step="0.01" value="0.72"><output id="waveHeight-out">0.72 m</output></div>
+    <div class="control"><label for="foam">Whitecaps</label><input id="foam" type="range" min="0" max="1" step="0.01" value="0.42"><output id="foam-out">42%</output></div>
+    <div class="control"><label for="time">Solar time</label><input id="time" type="range" min="5" max="22" step="0.1" value="14"><output id="time-out">14:00</output></div>
+    <div class="control"><label for="clouds">Cloud cover</label><input id="clouds" type="range" min="0" max="1" step="0.01" value="0.24"><output id="clouds-out">24%</output></div>
+    <div class="control"><label for="rain">Rain</label><input id="rain" type="range" min="0" max="1" step="0.01" value="0"><output id="rain-out">0%</output></div>
+    <div class="control"><label for="exposure">Exposure</label><input id="exposure" type="range" min="0.55" max="1.35" step="0.01" value="1.08"><output id="exposure-out">1.08</output></div></div>
+    <div class="panel-foot"><span>Procedural shader</span><span id="quality">High</span></div></div></aside>
+  <div class="copy"><strong>Weather, written<br>in water.</strong><span>Drag to orbit · Dive below</span></div>
+  <button class="drift on" id="drift"><span>Camera drift on</span></button>
+  <div class="loading" id="loading"><div class="loading-inner"><div class="loading-word">Tideline</div><div class="loading-wave"></div></div></div>
+  <div class="error" id="error"><div><h2>WebGL unavailable</h2></div></div>
+</main>
+<div class="glass"></div>
+<div class="neck"><div class="cork"></div><div class="wax"></div><div class="rope"></div><div class="tag">瓶中沧海<br>OCEAN · VII</div></div>
+<div class="cradle"><i></i><b></b><i></i></div>
+<div class="book"></div><div class="scope"></div>
+<div id="ui">
+  <div class="brand"><div class="eyebrow">A Photoreal Diorama · No. 07</div><h1>瓶中沧海</h1><div class="sub">An ocean sealed in glass, a ship that never reaches shore.</div></div>
+  <div class="status">时刻 <b id="sTime">午后</b><br>海况 <b id="sSea">微澜</b><br>帧率 <b id="fps">--</b></div>
+  <div class="hint"><b>拖动</b> 环视 · <b>滚轮</b> 缩放<br>低机位贴近浪面</div>
+  <div class="controls"><button id="btnStorm">风暴</button><button id="btnNight">夜色</button><button id="btnView">切换机位</button></div>
+</div>
+<script defer src="./dist/app.js"></script>
+</body></html>

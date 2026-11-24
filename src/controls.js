@@ -1,0 +1,34 @@
+// Interaction layer: storm / night / view, time-lapse day-night cycle.
+let T=null;
+function grab(){T=window.__tideline;if(!T)return requestAnimationFrame(grab);
+  T.set({autopilot:false});
+  const drift=document.getElementById("drift");if(drift){drift.classList.remove("on");drift.setAttribute("aria-pressed","false");const s=drift.querySelector("span");if(s)s.textContent="Camera drift off";}
+  T.look(3.5,2.2,12,0,0.8,-7);
+  const views=[[3.5,2.2,12],[ -6,3.0,10],[2,1.4,9],[5,4.5,11]];let vi=0;
+  const clearMode=()=>T.set({wind:2.6,waveHeight:.72,foam:.42,clouds:.24,rain:0,time:14,exposure:1.08});
+  let storm=false,night=false,speed=0,tod=14;
+  const timeEl=document.getElementById("sTime"),seaEl=document.getElementById("sSea"),fpsEl=document.getElementById("fps");
+  const bStorm=document.getElementById("btnStorm"),bNight=document.getElementById("btnNight"),bView=document.getElementById("btnView");
+  bStorm.onclick=()=>{storm=!storm;bStorm.classList.toggle("on",storm);
+    if(storm)T.set({wind:7.2,waveHeight:1.7,foam:.9,clouds:.95,rain:.85,exposure:.8});else{night?T.set({wind:2.2,waveHeight:.7,foam:.4,clouds:.3,rain:0,exposure:.95}):clearMode();}
+  };
+  bNight.onclick=()=>{night=!night;bNight.classList.toggle("on",night);
+    if(night)T.set({time:22.5,clouds:.28,exposure:.95});else T.set({time:14,exposure:1.08});tod=night?22.5:14;
+  };
+  bView.onclick=()=>{vi=(vi+1)%views.length;const v=views[vi];T.look(v[0],v[1],v[2],0,.8,-7);};
+  // optional timelapse via keyboard 1/2/3/0
+  addEventListener("keydown",e=>{
+    if(e.key==="1")speed=4;else if(e.key==="2")speed=12;else if(e.key==="0"||e.key==="3")speed=0;
+  });
+  // per-frame UI + timelapse (light: just update DOM + state occasionally)
+  let last=performance.now(),acc=0;
+  function loop(now){requestAnimationFrame(loop);const dt=(now-last)/1000;last=now;
+    if(speed>0&&!storm){tod=(tod+dt*speed*0.12)%24;T.set({time:tod});}
+    if(timeEl)timeEl.textContent=tod<6||tod>20?"子夜":tod<11?"黎明":tod<16?"正午":"黄昏";
+    if(seaEl)seaEl.textContent=storm?"风暴":(T.state.waveHeight>1?"涌浪":"微澜");
+    const st=document.getElementById("status");if(st&&fpsEl){/* tideline writes real fps into #status */}
+  }
+  requestAnimationFrame(loop);
+  console.log("[ctrl] interactions ready");
+}
+window.addEventListener("load",()=>requestAnimationFrame(grab));
