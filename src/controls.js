@@ -26,7 +26,7 @@ function grab(){T=window.__tideline;if(!T)return requestAnimationFrame(grab);
     if(speed>0&&!storm){tod=(tod+dt*speed*0.12)%24;T.set({time:tod});}
     if(timeEl)timeEl.textContent=tod<6||tod>20?"子夜":tod<11?"黎明":tod<16?"正午":"黄昏";
     if(seaEl)seaEl.textContent=storm?"风暴":(T.state.waveHeight>1?"涌浪":"微澜");
-    const st=document.getElementById("status");if(st&&fpsEl){/* tideline writes real fps into #status */}
+    if(fpsEl&&window.__tidelineFps){fpsEl.textContent=window.__tidelineFps;}
   }
   requestAnimationFrame(loop);
   console.log("[ctrl] interactions ready");

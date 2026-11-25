@@ -2091,6 +2091,7 @@ function init() {
       fpsStarted = now;
     } else if (now - fpsStarted > 900) {
       lastFps = Math.round((frames * 1000) / (now - fpsStarted));
+      window.__tidelineFps = lastFps;
       document.getElementById("status").textContent = `WebGL · ${lastFps} fps`;
       document.getElementById("quality").textContent =
         degraded === 0 ? "High" : degraded === 1 ? "Balanced" : degraded === 2 ? "Adaptive" : "Eco";
