@@ -12,3 +12,6 @@ HUD 实时显示时刻、海况、FPS。
 
 ## 技术
 基于 Tideline (MIT, Rino Lovreglio) 渲染底座 + 本项目集成层（更多船只/浮标/海鸟/鲸鱼、中文 UI、风暴增强、性能优化）。Three.js r185 + esbuild。构建：`pnpm install && pnpm run build`。
+
+## 3D 模型来源
+真实鲨鱼与鱼群 GLB 模型来自 [Animated Fish Bundle](https://github.com/Milkjuiceman/fishing-rhythm-game)（GPL-3.0），包括 Shark、Blue Tang、Cardinal Fish、Butterfly Fish、Goldfish 等。模型文件位于 assets/，由 fauna.js 通过 GLTFLoader 加载并播放原生游动动画。
