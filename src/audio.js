@@ -48,4 +48,3 @@ setInterval(()=>{
   const amt=s.includes("飓风")?1:s.includes("风暴")?0.6:s.includes("涌浪")?0.25:0;
   storm(amt);
 },700);
-const audioBtn=document.getElementById("btnAudio");if(audioBtn){audioBtn.addEventListener("click",e=>{e.stopPropagation();const m=window.__seaAudio.toggle();const b=document.getElementById("btnAudio");b.textContent=m?"🔇 静音":"🔊 声音";b.classList.toggle("on",!m);console.log("[audio] toggle muted="+m);});}
