@@ -59,7 +59,7 @@ addEventListener("DOMContentLoaded",function(){
     var A=window.__seaAudio;
     if(!A){btn.textContent="音频未就绪";return;}
     var m=A.toggle();
-    btn.textContent=m?"🔇 静音":"🔊 声音";btn.classList.toggle("on",!m);
+    btn.setAttribute("data-muted",m?"1":"0");btn.textContent=m?"🔇 静音":"🔊 声音";btn.classList.toggle("on",!m);
   });
 });
 </script>
