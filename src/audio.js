@@ -39,7 +39,7 @@ function storm(amount){if(!ctx||!windGain)return;const t=ctx.currentTime;
   windGain.gain.setTargetAtTime(0.02+amount*0.32,t,0.8);
   seaGain.gain.setTargetAtTime(0.18+amount*0.22,t,0.8);
 }
-window.__seaAudio={start,storm,toggle(){start();var b=document.getElementById("btnAudio");muted=b?b.getAttribute("data-muted")!=="1":!muted;if(master&&ctx)master.gain.setTargetAtTime(muted?0:0.5,ctx.currentTime,0.2);return muted;},get muted(){return muted;},get ready(){return started;}};
+window.__seaAudio={start,storm,toggle(){start();var b=document.getElementById("btnAudio");muted=b?b.getAttribute("data-muted")!=="1":!muted;if(master&&ctx)master.gain.setTargetAtTime(muted?0:0.5,ctx.currentTime,0.2);return muted;},get muted(){return muted;},setMute(v){muted=v;if(master&&ctx)master.gain.setTargetAtTime(muted?0:0.5,ctx.currentTime,0.2);},get ready(){return started;}};
 // start on first gesture
 ["pointerdown","keydown"].forEach(ev=>addEventListener(ev,()=>start(),{once:true}));
 // react to sea state from HUD

@@ -52,14 +52,16 @@
   <div class="ctl"><button id="btnStorm">风暴</button><button id="btnHurricane">飓风</button><button id="btnNight">夜色</button><button id="btnView">切换机位</button><button id="btnAudio" title="开启/关闭环境音">🔊 声音</button></div>
 </div>
 <script>
-// Audio UI is wired inline so it works regardless of bundle timing.
 addEventListener("DOMContentLoaded",function(){
   var btn=document.getElementById("btnAudio");if(!btn)return;
+  btn.setAttribute("data-muted","0");
   btn.addEventListener("click",function(){
-    var A=window.__seaAudio;
-    if(!A){btn.textContent="音频未就绪";return;}
-    var m=A.toggle();
-    btn.setAttribute("data-muted",m?"1":"0");btn.textContent=m?"🔇 静音":"🔊 声音";btn.classList.toggle("on",!m);
+    var A=window.__seaAudio;if(A&&A.start)A.start();
+    var m=btn.getAttribute("data-muted")!=="1";
+    btn.setAttribute("data-muted",m?"1":"0");
+    btn.textContent=m?"🔇 静音":"🔊 声音";btn.classList.toggle("on",!m);
+    if(A&&A.setMute)A.setMute(m);
+    console.log("[audio-ui] muted="+m);
   });
 });
 </script>
