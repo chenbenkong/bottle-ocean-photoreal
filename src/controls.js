@@ -21,12 +21,12 @@ function grab(){T=window.__tideline;if(!T)return requestAnimationFrame(grab);
     if(e.key==="1")speed=4;else if(e.key==="2")speed=12;else if(e.key==="0"||e.key==="3")speed=0;
   });
   // per-frame UI + timelapse (light: just update DOM + state occasionally)
-  let last=performance.now(),acc=0;
+  let last=performance.now(),acc=0,frames=0,fpsAcc=0,ownStart=performance.now();
   function loop(now){requestAnimationFrame(loop);const dt=(now-last)/1000;last=now;
     if(speed>0&&!storm){tod=(tod+dt*speed*0.12)%24;T.set({time:tod});}
     if(timeEl)timeEl.textContent=tod<6||tod>20?"子夜":tod<11?"黎明":tod<16?"正午":"黄昏";
     if(seaEl)seaEl.textContent=storm?"风暴":(T.state.waveHeight>1?"涌浪":"微澜");
-    if(fpsEl&&window.__tidelineFps){fpsEl.textContent=window.__tidelineFps;}
+    if(fpsEl){var real=window.__tidelineFps;if(real){fpsEl.textContent=real;}else if(dt>0&&dt<0.5){frames++;fpsAcc+=dt;if(fpsAcc>=1&&now-ownStart>2000){fpsEl.textContent=Math.max(1,Math.min(120,Math.round(frames/fpsAcc)));frames=0;fpsAcc=0;}}}
   }
   requestAnimationFrame(loop);
   console.log("[ctrl] interactions ready");
