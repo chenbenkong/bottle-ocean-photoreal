@@ -39,7 +39,7 @@ function storm(amount){if(!ctx||!windGain)return;const t=ctx.currentTime;
   windGain.gain.setTargetAtTime(0.02+amount*0.32,t,0.8);
   seaGain.gain.setTargetAtTime(0.18+amount*0.22,t,0.8);
 }
-window.__seaAudio={start,storm,toggle(){muted=!muted;if(master)master.gain.setTargetAtTime(muted?0:0.5,ctx.currentTime,0.2);return muted;},get muted(){return muted;}};
+window.__seaAudio={start,storm,toggle(){start();muted=!muted;if(master&&ctx)master.gain.setTargetAtTime(muted?0:0.5,ctx.currentTime,0.2);return muted;},get muted(){return muted;},get ready(){return started;}};
 // start on first gesture
 ["pointerdown","keydown"].forEach(ev=>addEventListener(ev,()=>start(),{once:true}));
 // react to sea state from HUD
@@ -48,4 +48,4 @@ setInterval(()=>{
   const amt=s.includes("飓风")?1:s.includes("风暴")?0.6:s.includes("涌浪")?0.25:0;
   storm(amt);
 },700);
-document.getElementById("btnAudio")?.addEventListener("click",e=>{start();const m=window.__seaAudio.toggle();e.target.textContent=m?"🔇 静音":"🔊 声音";e.target.classList.toggle("on",!m);});
+const audioBtn=document.getElementById("btnAudio");if(audioBtn){audioBtn.addEventListener("click",e=>{e.stopPropagation();const m=window.__seaAudio.toggle();const b=document.getElementById("btnAudio");b.textContent=m?"🔇 静音":"🔊 声音";b.classList.toggle("on",!m);console.log("[audio] toggle muted="+m);});}
