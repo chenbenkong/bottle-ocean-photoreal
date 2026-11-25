@@ -10,7 +10,7 @@ function grab(){T=window.__tideline;if(!T)return requestAnimationFrame(grab);
   const timeEl=document.getElementById("sTime"),seaEl=document.getElementById("sSea"),fpsEl=document.getElementById("fps");
   const bStorm=document.getElementById("btnStorm"),bNight=document.getElementById("btnNight"),bView=document.getElementById("btnView");
   bStorm.onclick=()=>{storm=!storm;bStorm.classList.toggle("on",storm);
-    if(storm)T.set({wind:7.2,waveHeight:1.7,foam:.9,clouds:.95,rain:.85,exposure:.8});else{night?T.set({wind:2.2,waveHeight:.7,foam:.4,clouds:.3,rain:0,exposure:.95}):clearMode();}
+    if(storm){T.set({wind:8,waveHeight:1.85,foam:1,clouds:1,rain:1,exposure:.9});T.strike&&T.strike();}else{night?T.set({wind:2.2,waveHeight:.7,foam:.4,clouds:.3,rain:0,exposure:.95}):clearMode();}
   };
   bNight.onclick=()=>{night=!night;bNight.classList.toggle("on",night);
     if(night)T.set({time:22.5,clouds:.28,exposure:.95});else T.set({time:14,exposure:1.08});tod=night?22.5:14;

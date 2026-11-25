@@ -8,8 +8,8 @@ const PRESETS = {
   Azure: { wind: 2.6, waveHeight: 0.72, foam: 0.42, time: 13.6, clouds: 0.22, exposure: 1.05, rain: 0 },
   Golden: { wind: 1.9, waveHeight: 0.6, foam: 0.3, time: 17.9, clouds: 0.34, exposure: 1.1, rain: 0 },
   Rain: { wind: 3.4, waveHeight: 0.85, foam: 0.5, time: 15.2, clouds: 0.8, exposure: 0.95, rain: 0.6 },
-  Storm: { wind: 6.6, waveHeight: 1.5, foam: 0.9, time: 16.4, clouds: 0.94, exposure: 0.82, rain: 0.2 },
-  Tempest: { wind: 7.4, waveHeight: 1.75, foam: 0.95, time: 17.4, clouds: 0.98, exposure: 0.72, rain: 1 },
+  Storm: { wind: 7.8, waveHeight: 1.8, foam: 1.0, time: 16.4, clouds: 0.98, exposure: 0.9, rain: 0.85 },
+  Tempest: { wind: 8.0, waveHeight: 1.85, foam: 1.0, time: 17.4, clouds: 1.0, exposure: 0.85, rain: 1 },
 };
 
 const state = { ...PRESETS.Azure, autopilot: true };
@@ -1122,7 +1122,7 @@ function init() {
   camera.position.set(6.8, 3.1, 13);
 
   let degraded = 0;
-  const basePixelRatio = () => Math.min(devicePixelRatio, mobile ? 1.3 : 1.75) * Math.pow(0.75, degraded);
+  const basePixelRatio = () => Math.min(devicePixelRatio, mobile ? 1.0 : 1.3) * Math.pow(0.75, degraded);
   renderer.setSize(innerWidth, innerHeight);
   renderer.setPixelRatio(basePixelRatio());
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -1178,7 +1178,7 @@ function init() {
   const skyMaterial = new THREE.ShaderMaterial({
     vertexShader: skyVertex, fragmentShader: skyFragment, uniforms: skyUniforms,
     side: THREE.BackSide, depthWrite: false,
-    defines: { FBM_OCT: 5, CLOUD_STEPS: 20, CLOUD_LSTEPS: 2 },
+    defines: { FBM_OCT: 4, CLOUD_STEPS: 10, CLOUD_LSTEPS: 1 },
   });
   const sky = new THREE.Mesh(new THREE.SphereGeometry(9000, 48, 28), skyMaterial);
   scene.add(sky);
@@ -1197,7 +1197,7 @@ function init() {
   });
 
   /* ---- mirror render target ---- */
-  const mirrorSize = mobile ? 512 : 768;
+  const mirrorSize = mobile ? 384 : 512;
   const mirrorRT = new THREE.WebGLRenderTarget(mirrorSize, mirrorSize, {
     type: THREE.HalfFloatType,
     minFilter: THREE.LinearFilter,
@@ -1207,7 +1207,7 @@ function init() {
   const mirrorMatrix = new THREE.Matrix4();
 
   /* ---- refraction target: the underwater world seen straight through ---- */
-  const refractionRT = new THREE.WebGLRenderTarget(1024, 576, {
+  const refractionRT = new THREE.WebGLRenderTarget(640, 360, {
     type: THREE.HalfFloatType,
     minFilter: THREE.LinearFilter,
     magFilter: THREE.LinearFilter,
@@ -2044,11 +2044,11 @@ function init() {
 
     /* ---- lightning: heavy rain builds strikes on a random cadence ---- */
     nextStrike -= dtSec;
-    if (smooth.rain > 0.68 && nextStrike <= 0) {
+    if (smooth.rain > 0.5 && nextStrike <= 0) {
       regenBolt();
       boltLife = 0.34;
       flashEnv = 1;
-      nextStrike = 2.5 + Math.random() * 5.5;
+      nextStrike = 1.2 + Math.random() * 2.8;
     }
     flashEnv = Math.max(0, flashEnv - dtSec * 3.6);
     boltLife = Math.max(0, boltLife - dtSec);
@@ -2097,7 +2097,7 @@ function init() {
         degraded === 0 ? "High" : degraded === 1 ? "Balanced" : degraded === 2 ? "Adaptive" : "Eco";
       // adaptive quality ladder: resolution → render targets → flat clouds
       // (hidden tabs run on a throttled timer loop, so their fps is meaningless)
-      if (!document.hidden && lastFps < 38 && degraded < 3 && now - startedAt > 4000) {
+      if (!document.hidden && lastFps < 45 && degraded < 3 && now - startedAt > 4000) {
         degraded++;
         renderer.setPixelRatio(Math.max(0.85, basePixelRatio()));
         if (degraded === 2) {

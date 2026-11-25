@@ -1,61 +1,29 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark">
-<title>瓶中沧海 · Ocean in a Bottle</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='52' font-size='52'%3E%F0%9F%8D%BE%3C/text%3E%3C/svg%3E">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>沧海 · Photoreal Ocean</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='52' font-size='52'%3E%F0%9F%8C%8A%3C/text%3E%3C/svg%3E">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
 <style>
-:root{color-scheme:dark;--ivory:#f3e7cd;--gold:#d5aa67}
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0b0908;font-family:Inter,"PingFang SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
-.desk{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 45% at 50% 62%,rgba(120,78,42,.35),transparent 70%),repeating-linear-gradient(92deg,#2a1a10 0 3px,#312015 3px 6px,#28180e 6px 9px),linear-gradient(180deg,#1a1109,#0b0806)}
-.desk::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 55%,transparent 30%,rgba(0,0,0,.74) 100%)}
-#app{position:fixed;z-index:1;inset:0;width:100vw;height:100vh;filter:drop-shadow(0 0 2px rgba(190,245,235,.55)) drop-shadow(0 24px 46px rgba(0,0,0,.7))}
+:root{color-scheme:dark;--ivory:#f4f8fb;--gold:#d5aa67}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#06121a;font-family:Inter,"PingFang SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+#app{position:fixed;inset:0;width:100vw;height:100vh;background:radial-gradient(circle at 50% 28%,rgba(35,107,139,.35),transparent 45%),#06121a}
 #stage,#stage canvas{position:absolute;inset:0;width:100%;height:100%}
-#stage canvas{display:block;cursor:grab}
-/* glass: fresnel rim, thickness vignette, specular streak — clip-path set by JS */
-.glass{position:fixed;z-index:2;inset:0;pointer-events:none;
-  box-shadow:
-    inset 0 0 2px 1px rgba(224,255,250,.62),
-    inset 0 0 14px 4px rgba(150,225,214,.26),
-    inset 0 0 50px 14px rgba(70,150,140,.14),
-    inset 0 0 130px 34px rgba(2,26,24,.34);
-  background:
-    linear-gradient(104deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,.04) 6%,transparent 15%,transparent 70%,rgba(196,244,236,.10) 86%,rgba(255,255,255,.20) 100%),
-    radial-gradient(ellipse at 28% 18%,rgba(255,255,255,.12),transparent 42%),
-    radial-gradient(ellipse at 78% 82%,rgba(160,230,220,.10),transparent 46%);}
-.glass::before{content:"";position:absolute;left:24%;top:14%;width:9%;height:46%;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,.30),rgba(255,255,255,.05) 60%,transparent);filter:blur(6px);transform:rotate(-7deg)}
-.rim{position:fixed;inset:0;z-index:2;pointer-events:none;width:100%;height:100%;overflow:visible}
-.glass::after{content:"";position:absolute;right:14%;bottom:16%;width:6%;height:20%;border-radius:50%;background:linear-gradient(0deg,rgba(210,255,245,.22),transparent);filter:blur(5px);transform:rotate(12deg)}
-/* props layer: translate+scale applied by JS so everything tracks the bottle */
-.props{position:fixed;left:0;top:0;z-index:3;pointer-events:none;transform-origin:0 0;width:0;height:0}
-.cork{position:absolute;left:388px;top:-34px;width:66px;height:68px;border-radius:8px 14px 14px 8px;background:repeating-linear-gradient(168deg,#a87a45 0 4px,#c09156 4px 8px,#8f6637 8px 11px);box-shadow:inset -9px 0 15px #4a3218aa,0 8px 18px #0009}
-.wax{position:absolute;left:426px;top:-38px;width:36px;height:76px;border-radius:6px 16px 16px 6px;background:linear-gradient(180deg,#c94238,#8e231d);box-shadow:inset -7px 0 11px #4d0f0baa,0 6px 14px #0008}
-.rope{position:absolute;left:384px;top:-22px;width:74px;height:52px;border:3px solid #8a6b3e;border-radius:50%;border-left-color:transparent;border-right-color:transparent;transform:rotate(6deg)}
-.tag{position:absolute;left:412px;top:52px;width:94px;height:54px;background:linear-gradient(135deg,#e8d9b0,#c9b98c);border-radius:3px;transform:rotate(-7deg);box-shadow:0 10px 22px #0008;color:#5a4a35;font:700 12px/1.35 Georgia,serif;letter-spacing:.06em;display:flex;align-items:center;justify-content:center;text-align:center}
-.tag::before{content:"";position:absolute;left:46px;top:-36px;width:2px;height:38px;background:#8a6b3e}
-.cradle i{position:absolute;bottom:0;width:124px;height:98px;background:linear-gradient(90deg,#3a2414,#6b4428 40%,#3a2414);border-radius:10px 10px 4px 4px;box-shadow:0 14px 26px #0009}
-.cradle i.a{left:-372px;top:200px;transform:rotate(11deg)}.cradle i.b{left:290px;top:200px;transform:rotate(-11deg)}
-.cradle b{position:absolute;left:-430px;top:266px;width:860px;height:36px;background:linear-gradient(180deg,#5a3a22,#2e1b0f);border-radius:6px;box-shadow:0 16px 30px #000b}
-.book{position:absolute;left:-486px;top:206px;width:196px;height:72px;background:linear-gradient(180deg,#6a342c,#3f1f1a);border-radius:4px;transform:perspective(400px) rotateX(18deg) rotateZ(-8deg);box-shadow:14px 18px 26px #0009}
-.book::before{content:"";position:absolute;inset:8px 10px 8px 16px;background:repeating-linear-gradient(#e4d7b6 0 2px,#cbbd99 2px 3px);border-radius:2px}
-.scope{position:absolute;left:330px;top:222px;width:238px;height:36px;background:linear-gradient(180deg,#d9b45e,#7a5c22);border-radius:18px;transform:rotate(-13deg);box-shadow:0 18px 26px #0009}
-.scope::before{content:"";position:absolute;left:-12px;top:-4px;width:26px;height:44px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#1a1a18,#3a2c12);border:3px solid #b28c3c}
-#ui{position:fixed;z-index:5;inset:0;pointer-events:none;color:var(--ivory)}
+#stage canvas{display:block;cursor:grab;touch-action:none}#stage canvas:active{cursor:grabbing}
+.vignette{position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.12),transparent 22%,transparent 70%,rgba(0,6,12,.4)),radial-gradient(circle,transparent 55%,rgba(0,4,8,.35) 125%)}
+#ui{position:fixed;inset:0;pointer-events:none;color:var(--ivory)}
 .brand{position:absolute;top:34px;left:40px;text-shadow:0 2px 18px #000b}
 .brand .eyebrow{font-size:10px;letter-spacing:.34em;color:var(--gold);margin-bottom:8px}
-.brand h1{font:400 clamp(26px,3.2vw,48px)/1 Georgia,"Songti SC",serif;letter-spacing:.16em;margin:0 0 6px}
+.brand h1{font:400 clamp(28px,3.4vw,52px)/1 Georgia,"Songti SC",serif;letter-spacing:.18em;margin:0 0 6px}
 .brand .sub{font:italic 12px/1.4 Georgia,serif;color:#d8cbb4aa;letter-spacing:.1em}
-.status{position:absolute;top:32px;right:34px;padding:12px 16px;border:1px solid #e4c99430;border-radius:3px;background:#171511b8;backdrop-filter:blur(10px);font-size:10px;letter-spacing:.12em;color:#c8bda8;line-height:1.9}
-.status b{color:#f0d69d;font-weight:600}
-.controls{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);display:flex;gap:6px;padding:7px;border:1px solid #e8d3ac30;border-radius:999px;background:#171511cc;backdrop-filter:blur(14px);pointer-events:auto}
-.controls button{appearance:none;border:0;border-radius:999px;background:transparent;color:#bcb5a8;font:500 11px/1 Inter,"Microsoft YaHei",sans-serif;letter-spacing:.06em;padding:11px 15px;cursor:pointer;transition:.2s}
-.controls button:hover,.controls button.on{color:#1c1710;background:linear-gradient(135deg,#f0d69d,#d5aa67)}
-.hint{position:absolute;left:40px;bottom:28px;font-size:10px;letter-spacing:.12em;color:#e8dcc499;line-height:1.9;text-shadow:0 2px 10px #000}
-.hint b{color:#f0d69d}
-#panel,#drift,#loading,.vignette,.grain,.copy,.topbar,.error{display:none!important}
-@media(max-width:900px){.brand{top:16px;left:16px}.status{top:12px;right:12px;font-size:9px}.hint{display:none}}
-</style></head>
-<body>
-<div class="desk"></div>
+.hud{position:absolute;top:32px;right:34px;padding:12px 16px;border:1px solid #e4c99430;border-radius:3px;background:#07121ab8;backdrop-filter:blur(10px);font-size:10px;letter-spacing:.12em;color:#c8bda8;line-height:1.95;min-width:150px}
+.hud b{color:#f0d69d;font-weight:600}.hud .fps{color:#9bd6a8;font-variant-numeric:tabular-nums}
+.hint{position:absolute;left:40px;bottom:30px;font-size:10px;letter-spacing:.13em;color:#e8f2f5aa;line-height:1.9;text-shadow:0 2px 10px #000}.hint b{color:#f0d69d}
+.ctl{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);display:flex;gap:6px;padding:7px;border:1px solid #e8d3ac30;border-radius:999px;background:#07121acc;backdrop-filter:blur(14px);pointer-events:auto}
+.ctl button{appearance:none;border:0;border-radius:999px;background:transparent;color:#bcd0d8;font:500 11px/1 Inter,"Microsoft YaHei",sans-serif;letter-spacing:.06em;padding:11px 15px;cursor:pointer;transition:.2s}
+.ctl button:hover,.ctl button.on{color:#04121a;background:linear-gradient(135deg,#bfe8f2,#79bfd6)}
+#panel,#drift,#loading,.copy,.topbar,.error,.grain{display:none!important}
+@media(max-width:760px){.brand{top:16px;left:16px}.hud{top:12px;right:12px;font-size:9px;min-width:120px}.hint{display:none}.ctl{bottom:12px}}
+</style></head><body>
 <main id="app">
   <div id="stage" aria-hidden="true"></div>
   <div class="vignette"></div><div class="grain"></div>
@@ -77,39 +45,11 @@
   <div class="loading" id="loading"><div class="loading-inner"><div class="loading-word">Tideline</div><div class="loading-wave"></div></div></div>
   <div class="error" id="error"><div><h2>WebGL unavailable</h2></div></div>
 </main>
-<div class="glass" id="glass"></div>
-<svg class="rim" id="rim" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><defs><linearGradient id="rimG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eafff9" stop-opacity=".85"/><stop offset=".5" stop-color="#bfe4dc" stop-opacity=".12"/><stop offset="1" stop-color="#dff7f0" stop-opacity=".45"/></linearGradient><filter id="rimBlur"><feGaussianBlur stdDeviation="2"/></filter></defs><path id="rimPath" fill="none" stroke="url(#rimG)" stroke-width="2.5"/></svg>
-<div class="props" id="props">
-  <div class="cork"></div><div class="wax"></div><div class="rope"></div><div class="tag">瓶中沧海<br>OCEAN · VII</div>
-  <div class="cradle"><i class="a"></i><b></b><i class="b"></i></div>
-  <div class="book"></div><div class="scope"></div>
-</div>
 <div id="ui">
-  <div class="brand"><div class="eyebrow">A Photoreal Diorama · No. 07</div><h1>瓶中沧海</h1><div class="sub">An ocean sealed in glass, a ship that never reaches shore.</div></div>
-  <div class="status">时刻 <b id="sTime">午后</b><br>海况 <b id="sSea">微澜</b><br>帧率 <b id="fps">--</b></div>
-  <div class="hint"><b>拖动</b> 环视 · <b>滚轮</b> 缩放<br>低机位贴近浪面</div>
-  <div class="controls"><button id="btnStorm">风暴</button><button id="btnNight">夜色</button><button id="btnView">切换机位</button></div>
+  <div class="brand"><div class="eyebrow">Photoreal Ocean · Live Shader</div><h1>沧海</h1><div class="sub">Weather, written in water. An endless ocean rendered in real time.</div></div>
+  <div class="hud">时刻 <b id="sTime">午后</b><br>海况 <b id="sSea">微澜</b><br>FPS <span class="fps" id="fps">--</span></div>
+  <div class="hint"><b>拖动</b> 环视 · <b>滚轮</b> 缩放 · 低机位可潜入水下<br>按住 <b>空格</b> 或点 <b>风暴</b> 掀起狂涛</div>
+  <div class="ctl"><button id="btnStorm">风暴</button><button id="btnNight">夜色</button><button id="btnView">切换机位</button></div>
 </div>
-<script>
-/* Responsive bottle geometry: keep a 2:1 silhouette regardless of viewport. */
-(function(){
-  function layout(){
-    var vw=innerWidth, vh=innerHeight;
-    var W=Math.min(vw*0.80, vh*1.5), H=W/2, s=W/1000, cx=vw/2-20*s, cy=vh*0.50;
-    function pt(x,y){return (cx+x*s).toFixed(1)+' '+(cy+y*s).toFixed(1);}
-    var d='M '+pt(-480,0)+' C '+pt(-480,-150)+' '+pt(-390,-230)+' '+pt(-220,-240)+
-          ' L '+pt(180,-240)+' C '+pt(320,-240)+' '+pt(400,-190)+' '+pt(400,-100)+
-          ' L '+pt(400,-60)+' C '+pt(400,-30)+' '+pt(430,-18)+' '+pt(480,-18)+
-          ' L '+pt(480,18)+' C '+pt(430,18)+' '+pt(400,30)+' '+pt(400,60)+
-          ' L '+pt(400,100)+' C '+pt(400,190)+' '+pt(320,240)+' '+pt(180,240)+
-          ' L '+pt(-220,240)+' C '+pt(-390,230)+' '+pt(-480,150)+' '+pt(-480,0)+' Z';
-    document.getElementById('app').style.clipPath="path('"+d+"')";
-    document.getElementById('glass').style.clipPath="path('"+d+"')";
-    var rim=document.getElementById('rim');rim.setAttribute('viewBox','0 0 '+vw+' '+vh);document.getElementById('rimPath').setAttribute('d',d);
-    document.getElementById('props').style.transform='translate('+cx+'px,'+cy+'px) scale('+s+')';
-  }
-  addEventListener('resize',layout); layout();
-})();
-</script>
 <script defer src="./dist/app.js"></script>
 </body></html>
