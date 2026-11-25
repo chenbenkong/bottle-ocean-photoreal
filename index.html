@@ -51,5 +51,17 @@
   <div class="hint"><b>拖动</b> 环视 · <b>滚轮</b> 缩放 · 低机位可潜入水下<br>按住 <b>空格</b>=风暴 · <b>飓风</b> 超级大风+巨浪，可叠加</div>
   <div class="ctl"><button id="btnStorm">风暴</button><button id="btnHurricane">飓风</button><button id="btnNight">夜色</button><button id="btnView">切换机位</button><button id="btnAudio" title="开启/关闭环境音">🔊 声音</button></div>
 </div>
+<script>
+// Audio UI is wired inline so it works regardless of bundle timing.
+addEventListener("DOMContentLoaded",function(){
+  var btn=document.getElementById("btnAudio");if(!btn)return;
+  btn.addEventListener("click",function(){
+    var A=window.__seaAudio;
+    if(!A){btn.textContent="音频未就绪";return;}
+    var m=A.toggle();
+    btn.textContent=m?"🔇 静音":"🔊 声音";btn.classList.toggle("on",!m);
+  });
+});
+</script>
 <script defer src="./dist/app.js"></script>
 </body></html>
