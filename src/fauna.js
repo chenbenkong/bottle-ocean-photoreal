@@ -7,7 +7,7 @@ window.addEventListener("load",()=>{
   function init(scene){
     const loader=new GLTFLoader(),G=new THREE.Group();G.name="voxel-fauna";scene.add(G);
     const load=(u)=>new Promise(res=>loader.load(u,g=>res(g.scene),undefined,()=>res(null)));
-    Promise.all([load("assets/voxel_shark.glb"),load("assets/voxel_fish.glb")]).then(([sharkSrc,fishSrc])=>{
+    Promise.all([load("assets/voxel_shark_fine.glb"),load("assets/voxel_fish_fine.glb")]).then(([sharkSrc,fishSrc])=>{
       if(!sharkSrc&&!fishSrc){console.warn("[fauna] voxel models missing");return;}
       function prep(src,target){
         const o=src;const bb=new THREE.Box3().setFromObject(o),sz=bb.getSize(new THREE.Vector3());
