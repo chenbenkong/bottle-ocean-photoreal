@@ -10,7 +10,7 @@ window.addEventListener("load",()=>{
     const loader=new GLTFLoader(),G=new THREE.Group();G.name="real-fauna";scene.add(G);
     const load=(url)=>new Promise(res=>loader.load(url,g=>res(g.scene),undefined,()=>res(null)));
     const base="assets/";
-    const files={shark:"Shark.glb",fish:["barramundi.glb","BlueTang.glb","fish0.glb","fish1.glb","fish2.glb","fish3.glb","fish4.glb"]};
+    const files={shark:"shark_real.glb",fish:["barramundi.glb","BlueTang.glb","fish0.glb","fish1.glb","fish2.glb","fish3.glb","fish4.glb"]};
     Promise.all([load(base+files.shark),...files.fish.map(f=>load(base+f))]).then(models=>{
       const sharkSrc=models[0],fishSrcs=models.slice(1).filter(Boolean);
       if(!sharkSrc&&!fishSrcs.length){console.warn("[fauna] no models loaded");return;}

@@ -16,3 +16,4 @@ HUD 实时显示时刻、海况、FPS。
 ## 3D 模型来源
 真实鲨鱼与鱼群 GLB 模型来自 [Animated Fish Bundle](https://github.com/Milkjuiceman/fishing-rhythm-game)（GPL-3.0），包括 Shark、Blue Tang、Cardinal Fish、Butterfly Fish、Goldfish 等。模型文件位于 assets/，由 fauna.js 通过 GLTFLoader 加载并播放原生游动动画。
 写实鱼群采用 Khronos 官方 glTF-Sample-Assets 的 BarramundiFish 模型（CC0），贴图经压缩至 512px 以提升性能。
+鲨鱼为本机 Blender 5.2 程序化建模导出（assets/shark_real.glb，8816 面，灰背白腹 + 镰刀背鳍/新月尾鳍）；鱼群含 Khronos CC0 Barramundi。
