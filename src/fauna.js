@@ -10,7 +10,7 @@ window.addEventListener("load",()=>{
     const loader=new GLTFLoader(),G=new THREE.Group();G.name="real-fauna";scene.add(G);
     const load=(url)=>new Promise(res=>loader.load(url,g=>res(g.scene),undefined,()=>res(null)));
     const base="assets/";
-    const files={shark:"Shark.glb",fish:["BlueTang.glb","fish0.glb","fish1.glb","fish2.glb","fish3.glb","fish4.glb"]};
+    const files={shark:"Shark.glb",fish:["barramundi.glb","BlueTang.glb","fish0.glb","fish1.glb","fish2.glb","fish3.glb","fish4.glb"]};
     Promise.all([load(base+files.shark),...files.fish.map(f=>load(base+f))]).then(models=>{
       const sharkSrc=models[0],fishSrcs=models.slice(1).filter(Boolean);
       if(!sharkSrc&&!fishSrcs.length){console.warn("[fauna] no models loaded");return;}
@@ -35,10 +35,10 @@ window.addEventListener("load",()=>{
       // Fish shoals: several clusters of real fish with animated swimming
       const shoals=[];
       for(let k=0;k<3;k++){
-        const grp=new THREE.Group(),cnt=7;
+        const grp=new THREE.Group(),cnt=k===0?2:7;
         for(let i=0;i<cnt;i++){
-          const src=fishSrcs[(i+k)%fishSrcs.length],f=cloneNorm(src,0.45+Math.random()*0.25);finishScale(f);
-          f.position.set((Math.random()-.5)*3,(Math.random()-.5)*1.2,(Math.random()-.5)*3);
+          const real=k===0;const src=fishSrcs[real?0:1+((i+k)%(fishSrcs.length-1))],f=cloneNorm(src,real?1.4:0.45+Math.random()*0.25);finishScale(f);
+          f.position.set(real?(i-0.5)*2.2:(Math.random()-.5)*3,(Math.random()-.5)*1.2,(Math.random()-.5)*3);
           f.rotation.y=Math.random()*6.28;f.userData.phase=Math.random()*6.28;grp.add(f);
         }
         grp.userData={cen:[k===0?0:(Math.random()-.5)*26,-0.45-Math.random()*0.5,k===0?2:-8-Math.random()*18],phase:Math.random()*6.28,sp:.2+Math.random()*.2};
@@ -59,7 +59,7 @@ window.addEventListener("load",()=>{
         if(shark){const u=shark.userData,a=u.a+dt*u.sp;shark.position.set(Math.cos(a)*u.r,u.y+Math.sin(a*2)*.4,Math.sin(a)*u.r-6);shark.rotation.y=-a+Math.PI/2;shark.rotation.z=Math.sin(a*3)*.06;}
         for(const g of shoals){const u=g.userData,cx=u.cen[0]+Math.sin(dt*u.sp+u.phase)*3;
           g.position.set(cx,u.cen[1],u.cen[2]);if(g===shoals[0]){g.position.set(0,-0.5,3);}
-          g.children.forEach((f,i)=>{f.position.y+=Math.sin(dt*1.3+f.userData.phase)*.0015;});}
+          g.children.forEach((f,i)=>{f.rotation.y+=Math.sin(dt*2+f.userData.phase)*.0008;});}
       })();
       console.log("[fauna] loaded real models: 1 shark, "+shoals.length+" shoals x "+shoals[0].children.length+" fish");
     });
