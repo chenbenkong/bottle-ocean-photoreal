@@ -39,8 +39,6 @@ window.addEventListener("load",()=>{
     }
 
     // ---- shark (voxel) ----
-    const SHARK_LEN=11;
-    const sharkP=load("assets/voxel_shark_ultra.glb");
     // ---- real fish species (fish-kit) ----
     const SPECIES=["madai","buri","saba","aji","kurodai","magochi","kasago","mebaru","suzuki","sawara","hiramasa","kihada"];
     const fishLoad=kitReady.then(()=>{
@@ -48,21 +46,8 @@ window.addEventListener("load",()=>{
       return loadFish("assets/fishkit/fish/",SPECIES).catch(e=>{console.error("[fauna] fishkit load fail",e&&e.message);});
     });
 
-    Promise.all([sharkP,fishLoad]).then(([sharkSrc])=>{
+    Promise.all([fishLoad]).then(()=>{
       try{
-        // shark
-        let shark=null;
-        if(sharkSrc){
-          const bb=new THREE.Box3().setFromObject(sharkSrc),sz=bb.getSize(new THREE.Vector3());
-          const m=Math.max(sz.x,sz.y,sz.z)||1;
-          sharkSrc.scale.setScalar(SHARK_LEN/m);sharkSrc.updateMatrixWorld(true);
-          const c=new THREE.Box3().setFromObject(sharkSrc).getCenter(new THREE.Vector3());
-          sharkSrc.position.sub(c);
-          shark=new THREE.Group();shark.add(sharkSrc);
-          shark.userData={a:-1.4,r:14.5,sp:.16,nextBreach:5,prevH:undefined,breachP:-1};
-          G.add(shark);
-        }
-
         // ---- fish schools using real models ----
         // [species, bearingDeg, radius, depthY, count, spread]
         const PLAN=[
@@ -113,35 +98,6 @@ window.addEventListener("load",()=>{
               if(r.life<=0){r.mesh.visible=false;r.mesh.material.opacity=0;}
               else{r.mesh.scale.setScalar(0.8+(1-r.life)*13);r.mesh.material.opacity=r.life*0.65;}}
           }
-          // shark
-          if(shark){
-            const u=shark.userData;
-            u.a+=dt*u.sp;
-            const ang=u.a,baseY=-1.9;
-            if(u.breachP<0){u.nextBreach-=dt;if(u.nextBreach<=0){u.breachP=0;u.nextBreach=rand(10,17);}}
-            let y=baseY,pitch=0;
-            if(u.breachP>=0){
-              u.breachP+=dt/2.9;const p=u.breachP;
-              if(p>=1){u.breachP=-1;}
-              else{
-                const rise=Math.min(p/0.42,1),fall=Math.max((p-0.42)/0.58,0);
-                const arc=Math.max(0,(1-Math.pow(1-rise,2.4))-Math.pow(fall,1.9));
-                y=baseY+arc*3.2;pitch=-Math.cos(Math.PI*Math.min(p,1))*0.34;
-              }
-            }else{
-              const bob=Math.sin(t*1.1)*0.22;y=baseY+bob*0.5+1.55;pitch=Math.sin(t*1.1)*0.05;
-            }
-            const rX=Math.cos(ang)*u.r,rZ=Math.sin(ang)*u.r*0.72-6;
-            shark.position.set(rX,y,rZ);
-            shark.rotation.order='YXZ';
-            shark.rotation.y=-ang+Math.PI/2;
-            shark.rotation.x=pitch;
-            if(u.prevH!==undefined){
-              if(u.prevH>0.5&&y<=0.5)spawnSplash(rX,rZ,1.35);
-              else if(u.prevH<=0.5&&y>0.5)spawnSplash(rX,rZ,0.9);
-            }
-            u.prevH=y;
-          }
           // real fish
           for(const inst of fish){
             const u=inst.object.userData;
@@ -156,7 +112,7 @@ window.addEventListener("load",()=>{
             try{inst.update(dt);}catch(e){}
           }
         })();
-        console.log("[fauna] real fish-kit: "+fish.length+" fish across "+new Set(fish.map(f=>f.object.userData.bear)).size+" schools (CC0)");
+        console.log("[fauna] real fish only: "+fish.length+" fish, "+(new Set(fish.map(f=>f.object.userData.bear)).size)+" schools (CC0)");
       }catch(err){console.error("[fauna] INIT ERROR",err&&(err.message||err));}
     });
   }
