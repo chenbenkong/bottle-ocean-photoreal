@@ -1137,10 +1137,10 @@ function init() {
   controls.enableDamping = true;
   controls.dampingFactor = 0.045;
   controls.target.set(0, 0.7, -7);
-  controls.minDistance = 4;
-  controls.maxDistance = 46;
-  controls.minPolarAngle = 0.55;
-  controls.maxPolarAngle = Math.PI * 0.985; // orbit below the surface to dive
+  controls.minDistance = 1.5;
+  controls.maxDistance = 140;
+  controls.minPolarAngle = 0.05;
+  controls.maxPolarAngle = Math.PI * 0.995; // orbit below the surface to dive
   controls.autoRotate = state.autopilot && !reducedMotion.matches;
   controls.autoRotateSpeed = 0.2;
 
