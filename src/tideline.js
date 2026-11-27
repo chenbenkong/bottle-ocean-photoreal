@@ -2070,6 +2070,11 @@ function init() {
     }
 
     controls.update();
+    // keep the camera above the seabed so it never clips through the floor
+    if (camera.position.y < -6.6) {
+      camera.position.y = -6.6;
+      camera.updateMatrixWorld();
+    }
     if (!submerged) {
       renderMirror();
       renderRefraction();
