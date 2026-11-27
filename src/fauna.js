@@ -20,7 +20,7 @@ window.addEventListener("load",()=>{
       const SHARK_LEN=11;
       if(sharkSrc){
         shark=prep(sharkSrc.clone(true),SHARK_LEN);
-        shark.userData={a:2.2,r:13,sp:.075,
+        shark.userData={a:-1.4,r:8.5,sp:.09,
           cycle:0,            // 0 = cruising, 1 = breaching
           nextBreach:6,       // seconds until first breach
           y:0, pitch:0};
