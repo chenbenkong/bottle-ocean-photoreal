@@ -175,7 +175,7 @@ window.addEventListener("load",()=>{
             else if(dist<60){ if(u.skip%4===0){ try{u.inst.update(dt*4);}catch(e){} } }
           }
         })();
-        console.log("[fauna] scattered real fish: "+fish.length+" individuals, region r"+REGION.rMin+"-"+REGION.rMax+", y"+REGION.yMin+"-"+REGION.yMax);
+        console.log("[fauna] fish "+fish.length+" | r"+REGION.rMin+"-"+REGION.rMax+" | y"+REGION.yMin+".."+REGION.yMax+" | bands "+BANDS.length+" (seabed ~-7.2)");
       }catch(err){console.error("[fauna] INIT ERROR",err&&(err.message||err));}
     });
   }
