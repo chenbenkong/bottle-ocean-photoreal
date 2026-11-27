@@ -60,15 +60,15 @@ window.addEventListener("load",()=>{
         // fully scattered, no schools: each fish gets its own roaming volume
         // [species, count]  -> 3x previous total (~237 fish)
         const PLAN=[
-          ["madai",12],["saba",14],["aji",12],["buri",10],["kurodai",10],["magochi",10],
-          ["kasago",9],["mebaru",9],["sawara",9],["hiramasa",9],["kihada",9],
-          ["isaki",8],["isaki_young",8],["kamasu",8],["katakuchi",7],["kuchibuto",7],
-          ["onagagure",7],["shibudai",8],["suzuki",8],["tachiuo",7]
+          ["madai",7],["saba",8],["aji",7],["buri",6],["kurodai",6],["magochi",6],
+          ["kasago",5],["mebaru",5],["sawara",5],["hiramasa",5],["kihada",5],
+          ["isaki",5],["isaki_young",5],["kamasu",5],["katakuchi",4],["kuchibuto",4],
+          ["onagagure",4],["shibudai",4],["suzuki",4],["tachiuo",4]
         ];
         // roaming volume: covers most of the sea (radius 4..34, depth -0.6..-3.4)
         const REGION={rMin:4,rMax:34,yMin:-3.4,yMax:-0.6};
         const fish=[];
-        const MOTION_POOL=["swim","power","turn","hover","range","bite","hooked","tired","air","landed"];
+        const MOTION_POOL=["swim","power","turn","hover","range"];   // cruising only — no fishing states
         for(const [sp,cnt] of PLAN){
           for(let i=0;i<cnt;i++){
             let inst=null;
@@ -81,13 +81,13 @@ window.addEventListener("load",()=>{
               r:rand(REGION.rMin,REGION.rMax),
               y:rand(REGION.yMin,REGION.yMax),
               a:rand(0,Math.PI*2),
-              sp:rand(0.10,0.30),              // 3x faster than before
+              sp:rand(0.28,0.62),              // faster cruising
               ySp:rand(0.15,0.5),
               yPh:rand(0,6.28),
               rDrift:rand(0.4,2.2),
               rDriftPh:rand(0,6.28),
               rDriftSp:rand(0.15,0.5),
-              motionTimer:rand(2,7),
+              motionTimer:rand(8,18),
               motionIdx:Math.floor(Math.random()*MOTION_POOL.length)
             };
             try{o.userData.inst.setMotion(MOTION_POOL[o.userData.motionIdx]);}catch(e){}
@@ -132,7 +132,7 @@ window.addEventListener("load",()=>{
             // switch motion periodically so fish visibly change behaviour
             u.motionTimer-=dt;
             if(u.motionTimer<=0){
-              u.motionTimer=rand(3,8);
+              u.motionTimer=rand(10,22);
               u.motionIdx=(u.motionIdx+1+Math.floor(Math.random()*(MOTION_POOL.length-1)))%MOTION_POOL.length;
               try{u.inst.setMotion(MOTION_POOL[u.motionIdx]);}catch(e){}
             }
