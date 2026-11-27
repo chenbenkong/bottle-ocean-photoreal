@@ -7,8 +7,8 @@ window.addEventListener("load",()=>{
   function wait(){const T=window.__tideline;if(!T||!T.scene)return requestAnimationFrame(wait);init(T.scene);}
   function init(scene){
     const loader=new GLTFLoader(),G=new THREE.Group();G.name="fauna";scene.add(G);
-    let loadFish=null,createFish=null;
-    const kitReady=import("../assets/fishkit/fish-kit.js").then(m=>{loadFish=m.loadFish;createFish=m.createFish;console.log("[fauna] fish-kit module ok");})
+    let loadFish=null,createFish=null,fishStats=null;
+    const kitReady=import("../assets/fishkit/fish-kit.js").then(m=>{loadFish=m.loadFish;createFish=m.createFish;fishStats=m.fishStats;console.log("[fauna] fish-kit module ok");})
       .catch(e=>{console.error("[fauna] fish-kit import FAILED",e&&e.message);});
     const load=(u)=>new Promise(res=>loader.load(u,g=>res(g.scene),undefined,e=>{console.error("[fauna] fail",u);res(null);}));
 
@@ -40,40 +40,55 @@ window.addEventListener("load",()=>{
 
     // ---- shark (voxel) ----
     // ---- real fish species (fish-kit) ----
-    const SPECIES=["madai","buri","saba","aji","kurodai","magochi","kasago","mebaru","suzuki","sawara","hiramasa","kihada"];
+    const SPECIES=["madai","buri","saba","aji","kurodai","magochi","kasago","mebaru","sawara","hiramasa","kihada"];
     const fishLoad=kitReady.then(()=>{
       if(!loadFish)return null;
-      return loadFish("assets/fishkit/fish/",SPECIES).catch(e=>{console.error("[fauna] fishkit load fail",e&&e.message);});
+      return loadFish("assets/fishkit/fish/",SPECIES).then(()=>{
+        if(fishStats){
+          const ok=SPECIES.filter(s=>{try{return !!fishStats(s);}catch(e){return false;}});
+          const bad=SPECIES.filter(s=>ok.indexOf(s)<0);
+          console.log("[fauna] registered species:",ok.length+"/"+SPECIES.length, bad.length?("MISSING: "+bad.join(",")):"");
+        }
+      }).catch(e=>{console.error("[fauna] fishkit load fail",e&&e.message);});
     });
 
     Promise.all([fishLoad]).then(()=>{
       try{
         // ---- fish schools using real models ----
         // [species, bearingDeg, radius, depthY, count, spread]
+        // fully scattered, no schools: each fish gets its own roaming volume
+        // [species, count]  -> 3x previous total (~237 fish)
         const PLAN=[
-          ["madai",   -35,  6.5, -1.0, 7, 1.8],["saba",    120, 12.0, -2.1, 10, 2.4],["aji",     210,  9.0, -1.5, 9, 2.0],
-          ["buri",     10,  8.0, -1.9, 6, 2.0],["kurodai", 160, 15.0, -2.6, 8, 2.6],["kasago",  285,  7.0, -0.9, 6, 1.6],
-          ["suzuki",   75, 10.5, -1.3, 7, 1.9],["magochi", 250, 13.5, -2.3, 8, 2.3],["mebaru",  -80, 11.5, -1.7, 6, 1.9],
-          ["sawara",   45,  9.5, -1.6, 6, 1.8],["hiramasa",195, 14.5, -2.0, 7, 2.2],["kihada",  320,  8.5, -1.1, 6, 1.8]
+          ["madai",26],["saba",30],["aji",26],["buri",20],["kurodai",24],["magochi",22],
+          ["kasago",18],["mebaru",18],["sawara",18],["hiramasa",20],["kihada",20]
         ];
+        // roaming volume: covers most of the sea (radius 4..34, depth -0.6..-3.4)
+        const REGION={rMin:4,rMax:34,yMin:-3.4,yMax:-0.6};
         const fish=[];
-        for(const [sp,deg,radius,depY,cnt,spread] of PLAN){
-          let proto=null;
-          try{proto=createFish(sp,120);}catch(e){continue;}
-          if(!proto)continue;
-          const bear=deg*Math.PI/180;
+        const MOTION_POOL=["swim","power","turn","hover","range","bite","hooked","tired","air","landed"];
+        for(const [sp,cnt] of PLAN){
           for(let i=0;i<cnt;i++){
-            const inst=createFish(sp,rand(90,160));
+            let inst=null;
+            try{inst=createFish(sp,rand(75,165));}catch(e){continue;}
             if(!inst)continue;
-            try{inst.setMotion('swim');}catch(e){}
-            inst.object.userData={
-              bear,radius,baseY:depY,inst,
-              off:new THREE.Vector3(rand(-spread,spread),rand(-spread*0.35,spread*0.35),rand(-spread,spread)),
-              drift:rand(0,6.28),driftSp:rand(0.05,0.14),
-              wob:rand(0,6.28),wobSp:rand(0.6,1.5),wobAmp:rand(0.12,0.3),
-              sp:rand(0.015,0.035)
+            const o=inst.object;
+            // independent roaming: each fish has its own orbit + vertical band + speed
+            o.userData={
+              inst,
+              r:rand(REGION.rMin,REGION.rMax),
+              y:rand(REGION.yMin,REGION.yMax),
+              a:rand(0,Math.PI*2),
+              sp:rand(0.10,0.30),              // 3x faster than before
+              ySp:rand(0.15,0.5),
+              yPh:rand(0,6.28),
+              rDrift:rand(0.4,2.2),
+              rDriftPh:rand(0,6.28),
+              rDriftSp:rand(0.15,0.5),
+              motionTimer:rand(2,7),
+              motionIdx:Math.floor(Math.random()*MOTION_POOL.length)
             };
-            G.add(inst.object);fish.push(inst);
+            try{o.userData.inst.setMotion(MOTION_POOL[o.userData.motionIdx]);}catch(e){}
+            G.add(o);fish.push(o);
           }
         }
 
@@ -98,21 +113,30 @@ window.addEventListener("load",()=>{
               if(r.life<=0){r.mesh.visible=false;r.mesh.material.opacity=0;}
               else{r.mesh.scale.setScalar(0.8+(1-r.life)*13);r.mesh.material.opacity=r.life*0.65;}}
           }
-          // real fish
-          for(const inst of fish){
-            const u=inst.object.userData;
-            const ang=u.bear+t*u.sp;
-            const drift=Math.sin(t*u.driftSp+u.drift)*2.2;
-            const cx=Math.cos(ang)*(u.radius+drift);
-            const cz=Math.sin(ang)*(u.radius+drift)*0.75-6;
-            const cy=u.baseY+Math.sin(t*u.wobSp*0.4+u.drift)*0.5;
-            const wob=Math.sin(t*u.wobSp+u.wob)*u.wobAmp;
-            inst.object.position.set(cx+u.off.x+wob,cy+u.off.y+wob*0.5,cz+u.off.z);
-            inst.object.rotation.y=-ang+Math.PI/2+Math.sin(t*u.wobSp+u.wob)*0.14;
-            try{inst.update(dt);}catch(e){}
+          // real fish: each roams independently across most of the sea
+          for(const o of fish){
+            const u=o.userData;
+            // horizontal orbit with drifting radius
+            u.a+=dt*u.sp;
+            const rr=u.r+Math.sin(t*u.rDriftSp+u.rDriftPh)*u.rDrift;
+            const cx=Math.cos(u.a)*rr, cz=Math.sin(u.a)*rr*0.85-8;
+            // vertical band with slow bobbing
+            const cy=u.y+Math.sin(t*u.ySp+u.yPh)*0.6;
+            o.position.set(cx,cy,cz);
+            // face travel direction
+            o.rotation.y=-u.a+Math.PI/2;
+            o.rotation.z=Math.sin(t*u.ySp*1.3+u.yPh)*0.08;
+            // switch motion periodically so fish visibly change behaviour
+            u.motionTimer-=dt;
+            if(u.motionTimer<=0){
+              u.motionTimer=rand(3,8);
+              u.motionIdx=(u.motionIdx+1+Math.floor(Math.random()*(MOTION_POOL.length-1)))%MOTION_POOL.length;
+              try{u.inst.setMotion(MOTION_POOL[u.motionIdx]);}catch(e){}
+            }
+            try{u.inst.update(dt);}catch(e){}
           }
         })();
-        console.log("[fauna] real fish only: "+fish.length+" fish, "+(new Set(fish.map(f=>f.object.userData.bear)).size)+" schools (CC0)");
+        console.log("[fauna] scattered real fish: "+fish.length+" individuals, region r"+REGION.rMin+"-"+REGION.rMax+", y"+REGION.yMin+"-"+REGION.yMax);
       }catch(err){console.error("[fauna] INIT ERROR",err&&(err.message||err));}
     });
   }
