@@ -68,7 +68,7 @@ window.addEventListener("load",()=>{
         // roaming volume: covers most of the sea (radius 4..34, depth -0.6..-3.4)
         const REGION={rMin:4,rMax:34,yMin:-3.4,yMax:-0.6};
         const fish=[];
-        const MOTION_POOL=["swim","power","turn","hover","range"];   // cruising only — no fishing states
+        const MOTION_POOL=["swim","power","turn","range"];   // cruising only — no hover, no fishing states
         for(const [sp,cnt] of PLAN){
           for(let i=0;i<cnt;i++){
             let inst=null;
@@ -76,18 +76,18 @@ window.addEventListener("load",()=>{
             if(!inst)continue;
             const o=inst.object;
             // independent roaming: each fish has its own orbit + vertical band + speed
+            // true cruising: each fish swims forward along a heading, slowly turning,
+            // and steers back when it reaches the edge of the region
+            const ang0=rand(0,Math.PI*2), rad0=rand(REGION.rMin+3,REGION.rMax-3);
+            o.position.set(Math.cos(ang0)*rad0, rand(REGION.yMin,REGION.yMax), Math.sin(ang0)*rad0*0.85-8);
             o.userData={
               inst,
-              r:rand(REGION.rMin,REGION.rMax),
-              y:rand(REGION.yMin,REGION.yMax),
-              a:rand(0,Math.PI*2),
-              sp:rand(0.28,0.62),              // faster cruising
-              ySp:rand(0.15,0.5),
-              yPh:rand(0,6.28),
-              rDrift:rand(0.4,2.2),
-              rDriftPh:rand(0,6.28),
-              rDriftSp:rand(0.15,0.5),
-              motionTimer:rand(8,18),
+              heading:rand(0,Math.PI*2),        // travel direction (radians)
+              speed:rand(0.6,1.5),              // world units per second
+              turnRate:rand(-0.28,0.28),        // gentle continuous turn
+              turnTimer:rand(2,6),
+              yTarget:rand(REGION.yMin,REGION.yMax),
+              motionTimer:rand(10,20),
               motionIdx:Math.floor(Math.random()*MOTION_POOL.length)
             };
             try{o.userData.inst.setMotion(MOTION_POOL[o.userData.motionIdx]);}catch(e){}
@@ -116,27 +116,42 @@ window.addEventListener("load",()=>{
               if(r.life<=0){r.mesh.visible=false;r.mesh.material.opacity=0;}
               else{r.mesh.scale.setScalar(0.8+(1-r.life)*13);r.mesh.material.opacity=r.life*0.65;}}
           }
-          // real fish: each roams independently across most of the sea
+          // real fish: forward cruising with gentle turns and soft boundary steering
           for(const o of fish){
             const u=o.userData;
-            // horizontal orbit with drifting radius
-            u.a+=dt*u.sp;
-            const rr=u.r+Math.sin(t*u.rDriftSp+u.rDriftPh)*u.rDrift;
-            const cx=Math.cos(u.a)*rr, cz=Math.sin(u.a)*rr*0.85-8;
-            // vertical band with slow bobbing
-            const cy=u.y+Math.sin(t*u.ySp+u.yPh)*0.6;
-            o.position.set(cx,cy,cz);
-            // face travel direction
-            o.rotation.y=-u.a+Math.PI/2;
-            o.rotation.z=Math.sin(t*u.ySp*1.3+u.yPh)*0.08;
-            // switch motion periodically so fish visibly change behaviour
+            // slow turn-rate wander: change the turn rate every few seconds
+            u.turnTimer-=dt;
+            if(u.turnTimer<=0){u.turnTimer=rand(2.5,7);u.turnRate=rand(-0.3,0.3);}
+            // soft boundary: steer back toward the region centre when too far out
+            const px=o.position.x, pz=o.position.z+8;
+            const rad=Math.hypot(px,pz*1.15);
+            if(rad>REGION.rMax-2){
+              const toCentre=Math.atan2(-px,-pz*1.15);
+              let d=toCentre-u.heading;
+              while(d>Math.PI)d-=Math.PI*2; while(d<-Math.PI)d+=Math.PI*2;
+              u.heading+=d*Math.min(1,dt*1.6);      // steer inward
+            }else{
+              u.heading+=u.turnRate*dt;
+            }
+            // advance along heading
+            const v=u.speed;
+            o.position.x+=Math.cos(u.heading)*v*dt;
+            o.position.z+=Math.sin(u.heading)*v*dt*0.85;
+            // keep inside depth band with slow vertical drift
+            const dy=u.yTarget-o.position.y;
+            if(Math.abs(dy)<0.15)u.yTarget=rand(REGION.yMin,REGION.yMax);
+            o.position.y+=Math.sign(dy)*Math.min(Math.abs(dy),0.35*dt);
+            // face travel direction (model faces +Z, back up)
+            o.rotation.y=-u.heading+Math.PI/2;
+            o.rotation.z=Math.sin(t*1.4+u.motionIdx)*0.05;
+            // motion state changes (cruising set only)
             u.motionTimer-=dt;
             if(u.motionTimer<=0){
               u.motionTimer=rand(10,22);
               u.motionIdx=(u.motionIdx+1+Math.floor(Math.random()*(MOTION_POOL.length-1)))%MOTION_POOL.length;
               try{u.inst.setMotion(MOTION_POOL[u.motionIdx]);}catch(e){}
             }
-            // perf tiers: near=every frame, mid=1/2, far=1/4, beyond=skip
+            // perf tiers unchanged
             const dist=camera?o.position.distanceTo(camera.position):20;
             u.skip=(u.skip||0)+1;
             if(dist<18){ try{u.inst.update(dt);}catch(e){} }
