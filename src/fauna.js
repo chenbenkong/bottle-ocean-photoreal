@@ -73,7 +73,7 @@ window.addEventListener("load",()=>{
           [-5.0,-3.0],                                        // mid
           [-3.0,-0.8]                                         // upper only 1/8
         ];
-        const SPAWN_COUNTS={madai:11,saba:12,aji:11,buri:9,kurodai:9,magochi:9,kasago:8,mebaru:8,sawara:8,hiramasa:8,kihada:8,isaki:8,isaki_young:8,kamasu:8,katakuchi:6,kuchibuto:6,onagagure:6,shibudai:6,suzuki:6,tachiuo:6};
+        const SPAWN_COUNTS={madai:8,saba:9,aji:8,buri:7,kurodai:7,magochi:7,kasago:6,mebaru:6,sawara:6,hiramasa:6,kihada:6,isaki:6,isaki_young:6,kamasu:6,katakuchi:5,kuchibuto:5,onagagure:5,shibudai:5,suzuki:5,tachiuo:5};
         // ---- simple direct spawn (no pool): fixed set of fish, cheap updates ----
         const fish=[];
         function spawnSpecies(list){
