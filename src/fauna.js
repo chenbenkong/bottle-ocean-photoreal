@@ -35,7 +35,7 @@ window.addEventListener("load",()=>{
       for(const r of ripples){if(r.life<=0){r.life=1;r.mesh.position.set(x,0.12,z);r.mesh.visible=true;r.mesh.scale.setScalar(0.6);break;}}
     }
 
-    Promise.all([load("assets/voxel_shark_fine.glb"),load("assets/voxel_fish_fine.glb")]).then(([sharkSrc,fishSrc])=>{
+    Promise.all([load("assets/voxel_shark_ultra.glb"),load("assets/voxel_fish_fine.glb")]).then(([sharkSrc,fishSrc])=>{
       try{
         if(!sharkSrc&&!fishSrc){console.warn("[fauna] models missing");return;}
         function prep(src,target){
