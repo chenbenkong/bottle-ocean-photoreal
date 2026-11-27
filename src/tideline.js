@@ -1129,7 +1129,7 @@ function init() {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = state.exposure;
   renderer.shadowMap.enabled = !mobile;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
   mount.appendChild(renderer.domElement);
 
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
@@ -1178,7 +1178,7 @@ function init() {
   const skyMaterial = new THREE.ShaderMaterial({
     vertexShader: skyVertex, fragmentShader: skyFragment, uniforms: skyUniforms,
     side: THREE.BackSide, depthWrite: false,
-    defines: { FBM_OCT: 4, CLOUD_STEPS: 10, CLOUD_LSTEPS: 1 },
+    defines: { FBM_OCT: 3, CLOUD_STEPS: 7, CLOUD_LSTEPS: 1 },
   });
   const sky = new THREE.Mesh(new THREE.SphereGeometry(9000, 48, 28), skyMaterial);
   scene.add(sky);
@@ -1652,7 +1652,7 @@ function init() {
   const hemi = new THREE.HemisphereLight(0xbfe9ff, 0x0c1a20, 1.2); scene.add(hemi);
   const directional = new THREE.DirectionalLight(0xffe8bd, 3.2);
   directional.castShadow = !mobile;
-  directional.shadow.mapSize.set(1024, 1024);
+  directional.shadow.mapSize.set(512, 512);
   directional.shadow.camera.near = 0.5;
   directional.shadow.camera.far = 400;
   directional.shadow.camera.left = -85; directional.shadow.camera.right = 85;
