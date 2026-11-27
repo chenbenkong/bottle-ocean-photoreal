@@ -65,6 +65,7 @@ window.addEventListener("load",()=>{
           blue:  [[  10, 12, -1.8, 12, 3.2],[ 160, 26, -2.6,  9, 3.4],[ 285, 10, -0.8,  8, 2.2]],
           yellow:[[  75, 16, -1.2,  9, 2.6],[ 250, 22, -2.2, 11, 3.2],[ -80, 18, -1.6,  7, 2.4]]
         };
+        console.log("[fauna] species parts:",Object.keys(species).map(k=>k+"="+species[k].length).join(", "));
         for(const [k,parts] of Object.entries(species)){
           if(!parts.length)continue;
           const sg=new THREE.Group();parts.forEach(p=>sg.add(p.clone(true)));
@@ -157,7 +158,7 @@ window.addEventListener("load",()=>{
             f.rotation.z=Math.sin(t*u.wobSp*1.3+u.wob)*0.06;
           }
         })();
-        console.log("[fauna] ready: shark "+SHARK_LEN+"u + "+fish.length+" fish");
+        console.log("[fauna] ready: shark "+SHARK_LEN+"u + "+fish.length+" fish (plan keys: "+Object.keys(SCHOOL_PLAN).join("/")+")");
       }catch(err){console.error("[fauna] INIT ERROR",err&&(err.message||err));}
     });
   }
