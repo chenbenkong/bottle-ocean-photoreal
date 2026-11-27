@@ -1,13 +1,15 @@
 // Fauna: real CC0 photo-based fish (fish-kit) + voxel breaching shark.
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { loadFish, createFish } from "../assets/fishkit/fish-kit.js";
 const rand=(a,b)=>a+Math.random()*(b-a);
 
 window.addEventListener("load",()=>{
   function wait(){const T=window.__tideline;if(!T||!T.scene)return requestAnimationFrame(wait);init(T.scene);}
   function init(scene){
     const loader=new GLTFLoader(),G=new THREE.Group();G.name="fauna";scene.add(G);
+    let loadFish=null,createFish=null;
+    const kitReady=import("../assets/fishkit/fish-kit.js").then(m=>{loadFish=m.loadFish;createFish=m.createFish;console.log("[fauna] fish-kit module ok");})
+      .catch(e=>{console.error("[fauna] fish-kit import FAILED",e&&e.message);});
     const load=(u)=>new Promise(res=>loader.load(u,g=>res(g.scene),undefined,e=>{console.error("[fauna] fail",u);res(null);}));
 
     // ---- splash / ripple state ----
@@ -41,7 +43,10 @@ window.addEventListener("load",()=>{
     const sharkP=load("assets/voxel_shark_ultra.glb");
     // ---- real fish species (fish-kit) ----
     const SPECIES=["madai","buri","saba","aji","kurodai","magochi","kasago","mebaru","suzuki","sawara","hiramasa","kihada"];
-    const fishLoad=loadFish("assets/fishkit/fish/",SPECIES).catch(e=>{console.error("[fauna] fishkit load fail",e);});
+    const fishLoad=kitReady.then(()=>{
+      if(!loadFish)return null;
+      return loadFish("assets/fishkit/fish/",SPECIES).catch(e=>{console.error("[fauna] fishkit load fail",e&&e.message);});
+    });
 
     Promise.all([sharkP,fishLoad]).then(([sharkSrc])=>{
       try{
