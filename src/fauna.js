@@ -73,7 +73,7 @@ window.addEventListener("load",()=>{
           [-5.0,-3.0],                                        // mid
           [-3.0,-0.8]                                         // upper only 1/8
         ];
-        const SPAWN_COUNTS={madai:8,saba:9,aji:8,buri:7,kurodai:7,magochi:7,kasago:6,mebaru:6,sawara:6,hiramasa:6,kihada:6,isaki:6,isaki_young:6,kamasu:6,katakuchi:5,kuchibuto:5,onagagure:5,shibudai:5,suzuki:5,tachiuo:5};
+        const SPAWN_COUNTS={madai:7,saba:8,aji:7,buri:6,kurodai:6,magochi:6,kasago:5,mebaru:5,sawara:5,hiramasa:5,kihada:5,isaki:5,isaki_young:5,kamasu:5,katakuchi:4,kuchibuto:4,onagagure:4,shibudai:4,suzuki:4,tachiuo:4};
         // ---- simple direct spawn (no pool): fixed set of fish, cheap updates ----
         const fish=[];
         function spawnSpecies(list){
@@ -97,8 +97,32 @@ window.addEventListener("load",()=>{
           }
         }
         const MOTION_POOL=["swim","power","turn","range"];   // cruising only — no hover, no fishing states
+
+        // ---- giant fish: circles the whole island ----
+        const ISLAND={x:-26,z:-52,r:30};
+        let giant=null;
+        function spawnGiant(){
+          let inst=null;
+          try{inst=createFish("buri",430);}catch(e){console.warn("[fauna] giant fail",e&&e.message);return;}
+          if(!inst)return;
+          const o=inst.object;
+          o.userData={
+            inst,
+            orbitR:ISLAND.r+16,       // wider berth around the island
+            a:rand(0,Math.PI*2),
+            sp:0.055,                 // slow, majestic
+            y:-4.6,
+            yPh:rand(0,6.28),
+            motionTimer:rand(15,28),
+            motionIdx:0
+          };
+          try{inst.setMotion("swim");}catch(e){}
+          G.add(o);giant=o;
+          console.log("[fauna] GIANT buri 520cm orbiting island r="+o.userData.orbitR);
+        }
         // phase 1: spawn the species already loaded (instant paint)
         spawnSpecies(SPECIES_FAST);
+        spawnGiant();
         // phase 2: background-load the remaining species, then spawn them
         const SPECIES_REST=SPECIES.slice(SPECIES_FAST.length,SPECIES_FAST.length+13);
         kitReady.then(()=>loadFish("assets/fishkit/fish/",SPECIES_REST))
@@ -127,6 +151,22 @@ window.addEventListener("load",()=>{
               else{r.mesh.scale.setScalar(0.8+(1-r.life)*13);r.mesh.material.opacity=r.life*0.65;}}
           }
           // real fish: forward cruising with gentle turns and soft boundary steering
+          // ---- giant fish circling the island ----
+          if(giant){
+            const gu=giant.userData;
+            gu.a+=dt*gu.sp;
+            const gx=ISLAND.x+Math.cos(gu.a)*gu.orbitR;
+            const gz=ISLAND.z+Math.sin(gu.a)*gu.orbitR*0.9;
+            const gy=gu.y+Math.sin(t*0.5+gu.yPh)*0.8;
+            giant.position.set(gx,gy,gz);
+            giant.rotation.y=-gu.a+Math.PI/2;
+            giant.rotation.z=Math.sin(t*0.6)*0.04;
+            gu.motionTimer-=dt;
+            if(gu.motionTimer<=0){gu.motionTimer=rand(15,28);
+              const m=["swim","power","turn"][Math.floor(Math.random()*3)];
+              try{gu.inst.setMotion(m);}catch(e){}}
+            try{gu.inst.update(dt);}catch(e){}
+          }
           for(const o of fish){
             const u=o.userData;
             // slow turn-rate wander: change the turn rate every few seconds
