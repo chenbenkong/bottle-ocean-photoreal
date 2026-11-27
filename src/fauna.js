@@ -56,14 +56,32 @@ window.addEventListener("load",()=>{
         // fish species split
         const species={orange:[],blue:[],yellow:[]};
         if(fishSrc)fishSrc.traverse(o=>{if(!o.isMesh)return;const n=o.name.toLowerCase();for(const k of Object.keys(species))if(n.includes(k))species[k].push(o);});
+        // ---- realistic ecosystem layout: each species forms multiple schools
+        // anchored in different regions (bearing / radius / depth band), fish spread inside the school
         const fish=[];
+        const SCHOOL_PLAN={
+          // species: [ [bearingDeg, radius, depthY, count, spreadXY], ... ]
+          orange:[[ -35,  9, -0.9, 10, 2.4],[ 120, 21, -2.0,  8, 3.0],[ 210, 15, -1.4,  7, 2.6]],
+          blue:  [[  10, 12, -1.8, 12, 3.2],[ 160, 26, -2.6,  9, 3.4],[ 285, 10, -0.8,  8, 2.2]],
+          yellow:[[  75, 16, -1.2,  9, 2.6],[ 250, 22, -2.2, 11, 3.2],[ -80, 18, -1.6,  7, 2.4]]
+        };
         for(const [k,parts] of Object.entries(species)){
           if(!parts.length)continue;
           const sg=new THREE.Group();parts.forEach(p=>sg.add(p.clone(true)));
-          for(let i=0;i<8;i++){
-            const f=prep(sg.clone(true),rand(0.75,1.15));
-            f.userData={a:rand(0,6.28),r:rand(4,15),y:rand(-2.6,-0.8),sp:rand(.25,.5),phase:rand(0,6.28)};
-            G.add(f);fish.push(f);
+          for(const [deg,radius,depY,cnt,spread] of SCHOOL_PLAN[k]||[]){
+            const bear=deg*Math.PI/180;
+            for(let i=0;i<cnt;i++){
+              const f=prep(sg.clone(true),rand(0.7,1.15));
+              f.userData={
+                // school anchor (slowly drifting orbit), fish offset inside it
+                bear, radius, baseY:depY,
+                off:new THREE.Vector3(rand(-spread,spread),rand(-spread*0.35,spread*0.35),rand(-spread,spread)),
+                drift:rand(0,6.28), driftSp:rand(0.05,0.14),
+                wob:rand(0,6.28), wobSp:rand(0.6,1.5), wobAmp:rand(0.12,0.3),
+                sp:rand(0.015,0.035)   // school orbit speed (rad/s)
+              };
+              G.add(f);fish.push(f);
+            }
           }
         }
         let t0=performance.now(),last=t0;
@@ -125,9 +143,18 @@ window.addEventListener("load",()=>{
             u.prevH=y;
           }
           for(const f of fish){
-            const u=f.userData,a=u.a+t*u.sp;
-            f.position.set(Math.cos(a)*u.r,u.y+Math.sin(a*2+u.phase)*0.15,Math.sin(a)*u.r*.6-10);
-            f.rotation.y=-a+Math.PI/2;
+            const u=f.userData;
+            // school slowly circles the scene; individual fish keeps its offset inside the school
+            const ang=u.bear+t*u.sp;
+            const drift=Math.sin(t*u.driftSp+u.drift)*2.2;           // school-wide meander
+            const cx=Math.cos(ang)*(u.radius+drift);
+            const cz=Math.sin(ang)*(u.radius+drift)*0.75-6;
+            const cy=u.baseY+Math.sin(t*u.wobSp*0.4+u.drift)*0.5;   // slow vertical migration
+            const wob=Math.sin(t*u.wobSp+u.wob)*u.wobAmp;
+            f.position.set(cx+u.off.x+wob, cy+u.off.y+wob*0.5, cz+u.off.z);
+            // face along the orbit tangent
+            f.rotation.y=-ang+Math.PI/2+Math.sin(t*u.wobSp+u.wob)*0.14;
+            f.rotation.z=Math.sin(t*u.wobSp*1.3+u.wob)*0.06;
           }
         })();
         console.log("[fauna] ready: shark "+SHARK_LEN+"u + "+fish.length+" fish");
