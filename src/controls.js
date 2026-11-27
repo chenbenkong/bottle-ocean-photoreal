@@ -14,9 +14,9 @@ function grab(){T=window.__tideline;if(!T)return requestAnimationFrame(grab);
     let p;
     if(hurricane){
       // hurricane: waveHeight bypasses the slider cap — this is the giant-swell lever
-      p={wind:8,waveHeight:storm?4.0:3.2,foam:1,clouds:1,rain:storm?1:.9,exposure:.86};
+      p={wind:8,waveHeight:storm?1.9:1.5,foam:storm?.45:.35,clouds:.95,rain:storm?.9:.7,exposure:storm?1.0:1.03};
     }else if(storm){
-      p={wind:8,waveHeight:1.85,foam:1,clouds:1,rain:1,exposure:.9};
+      p={wind:6.5,waveHeight:1.05,foam:.3,clouds:.85,rain:.8,exposure:1.05};
     }else if(night){
       p={wind:2.2,waveHeight:.7,foam:.4,clouds:.3,rain:0,exposure:.95};
     }else{

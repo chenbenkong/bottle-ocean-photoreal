@@ -10,10 +10,10 @@ window.addEventListener("load",()=>{
     const load=(u)=>new Promise(res=>loader.load(u,g=>res(g.scene),undefined,e=>{console.error("[fauna] load fail",u,e&&e.message);res(null);}));
 
     // ---- splash / ripple state: module scope inside init so the loop can see it ----
-    const SPLASH_N=150;
+    const SPLASH_N=320;
     const splashGeo=new THREE.BufferGeometry();
     splashGeo.setAttribute("position",new THREE.BufferAttribute(new Float32Array(SPLASH_N*3),3));
-    const splashMat=new THREE.PointsMaterial({color:0xdff2f7,size:0.5,transparent:true,opacity:0,depthWrite:false});
+    const splashMat=new THREE.PointsMaterial({color:0xdff2f7,size:0.95,transparent:true,opacity:0,depthWrite:false});
     const splash=new THREE.Points(splashGeo,splashMat);G.add(splash);
     const splashVel=[];for(let i=0;i<SPLASH_N;i++)splashVel.push(new THREE.Vector3());
     let splashLife=0;
@@ -24,12 +24,12 @@ window.addEventListener("load",()=>{
       ring.rotation.x=-Math.PI/2;ring.visible=false;G.add(ring);ripples.push({mesh:ring,life:0});
     }
     function spawnSplash(x,z,power){
-      splashLife=1;splashMat.opacity=0.95;
+      splashLife=1;splashMat.opacity=1.0;
       const pos=splashGeo.attributes.position.array;
       for(let i=0;i<SPLASH_N;i++){
-        pos[i*3]=x+(Math.random()-0.5)*1.6;pos[i*3+1]=0.2;pos[i*3+2]=z+(Math.random()-0.5)*1.6;
-        const a=Math.random()*Math.PI*2,v=0.7+Math.random()*1.6*power;
-        splashVel[i].set(Math.cos(a)*v*0.5,1.8+Math.random()*3*power,Math.sin(a)*v*0.5);
+        pos[i*3]=x+(Math.random()-0.5)*2.8;pos[i*3+1]=0.25;pos[i*3+2]=z+(Math.random()-0.5)*2.8;
+        const a=Math.random()*Math.PI*2,v=1.2+Math.random()*2.4*power;
+        splashVel[i].set(Math.cos(a)*v*0.9,3.2+Math.random()*5.5*power,Math.sin(a)*v*0.9);
       }
       splashGeo.attributes.position.needsUpdate=true;
       for(const r of ripples){if(r.life<=0){r.life=1;r.mesh.position.set(x,0.12,z);r.mesh.visible=true;r.mesh.scale.setScalar(0.6);break;}}
@@ -50,7 +50,7 @@ window.addEventListener("load",()=>{
         let shark=null;
         if(sharkSrc){
           shark=prep(sharkSrc,SHARK_LEN);
-          shark.userData={a:-1.4,r:8.5,sp:.09,nextBreach:5,prevH:undefined,breachP:-1};
+          shark.userData={a:-1.4,r:14.5,sp:.16,nextBreach:5,prevH:undefined,breachP:-1};
           G.add(shark);
         }
         // fish species split
@@ -72,7 +72,7 @@ window.addEventListener("load",()=>{
           const now=performance.now(),t=(now-t0)/1000,dt=Math.min((now-last)/1000,0.05);last=now;
           // splash update
           if(splashLife>0){
-            splashLife-=dt*0.8;
+            splashLife-=dt*0.55;
             const pos=splashGeo.attributes.position.array;
             for(let i=0;i<SPLASH_N;i++){
               splashVel[i].y-=9.8*dt;
@@ -80,12 +80,12 @@ window.addEventListener("load",()=>{
               if(pos[i*3+1]<0.05){pos[i*3+1]=0.05;splashVel[i].y*=-0.15;splashVel[i].x*=0.7;splashVel[i].z*=0.7;}
             }
             splashGeo.attributes.position.needsUpdate=true;
-            splashMat.opacity=Math.max(0,splashLife*0.95);
+            splashMat.opacity=Math.max(0,splashLife*1.0);
           }
           for(const r of ripples){
             if(r.life>0){r.life-=dt*0.5;
               if(r.life<=0){r.mesh.visible=false;r.mesh.material.opacity=0;}
-              else{r.mesh.scale.setScalar(0.6+(1-r.life)*8);r.mesh.material.opacity=r.life*0.5;}}
+              else{r.mesh.scale.setScalar(0.8+(1-r.life)*13);r.mesh.material.opacity=r.life*0.65;}}
           }
           if(shark){
             const u=shark.userData;
@@ -114,10 +114,14 @@ window.addEventListener("load",()=>{
             }
             const rX=Math.cos(ang)*u.r,rZ=Math.sin(ang)*u.r*0.72-6;
             shark.position.set(rX,y,rZ);
+            shark.rotation.order='YXZ';
             shark.rotation.y=-ang+Math.PI/2;
-            shark.rotation.z=pitch;
+            shark.rotation.x=pitch;   // pitch about local X (model faces -X) => nose up/down, never rolls
             // water entry detection
-            if(u.prevH!==undefined&&u.prevH>0.5&&y<=0.5){spawnSplash(rX,rZ,1.0);}
+            if(u.prevH!==undefined){
+              if(u.prevH>0.5&&y<=0.5){spawnSplash(rX,rZ,1.35);}   // re-entry: big burst
+              else if(u.prevH<=0.5&&y>0.5){spawnSplash(rX,rZ,0.9);} // takeoff: smaller burst
+            }
             u.prevH=y;
           }
           for(const f of fish){
