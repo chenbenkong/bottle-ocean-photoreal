@@ -64,9 +64,15 @@ window.addEventListener("load",()=>{
         ];
         // roaming volume: covers most of the sea (radius 4..34, depth -0.6..-3.4)
         // full water column: surface -0.5 down to just above the seabed (-7.2)
-        const REGION={rMin:4,rMax:34,yMin:-6.6,yMax:-0.5};
-        // depth bands: bottom-dwellers / mid / upper / near-surface
-        const BANDS=[[-6.4,-4.6],[-5.2,-2.8],[-3.6,-1.2],[-1.8,-0.5]];
+        const REGION={rMin:4,rMax:34,yMin:-6.9,yMax:-0.5};
+        // depth bands weighted toward the bottom (seabed sits at ~-7.2)
+        // repeated entries act as weights: 4x bottom, 2x lower-mid, 1x mid, 1x upper
+        const BANDS=[
+          [-6.9,-6.0],[-6.9,-6.0],[-6.9,-6.0],[-6.9,-6.0],   // bottom hugging
+          [-6.2,-4.8],[-6.2,-4.8],                            // lower mid
+          [-5.0,-3.0],                                        // mid
+          [-3.0,-0.8]                                         // upper only 1/8
+        ];
         const fish=[];
         const SPAWN_COUNTS={madai:7,saba:8,aji:7,buri:6,kurodai:6,magochi:6,kasago:5,mebaru:5,sawara:5,hiramasa:5,kihada:5,isaki:5,isaki_young:5,kamasu:5,katakuchi:4,kuchibuto:4,onagagure:4,shibudai:4,suzuki:4,tachiuo:4};
         function spawnSpecies(list){
