@@ -64,7 +64,7 @@ window.addEventListener("load",()=>{
         ];
         // roaming volume: covers most of the sea (radius 4..34, depth -0.6..-3.4)
         // full water column: surface -0.5 down to just above the seabed (-7.2)
-        const REGION={rMin:5,rMax:58,yMin:-6.9,yMax:-0.5};  // wider sea: out to r58
+        const REGION={rMin:4,rMax:30,yMin:-6.9,yMax:-0.5};  // keep inside the visible band
         // depth bands weighted toward the bottom (seabed sits at ~-7.2)
         // repeated entries act as weights: 4x bottom, 2x lower-mid, 1x mid, 1x upper
         const BANDS=[
