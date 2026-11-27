@@ -64,7 +64,7 @@ window.addEventListener("load",()=>{
         ];
         // roaming volume: covers most of the sea (radius 4..34, depth -0.6..-3.4)
         // full water column: surface -0.5 down to just above the seabed (-7.2)
-        const REGION={rMin:4,rMax:34,yMin:-6.9,yMax:-0.5};
+        const REGION={rMin:5,rMax:58,yMin:-6.9,yMax:-0.5};  // wider sea: out to r58
         // depth bands weighted toward the bottom (seabed sits at ~-7.2)
         // repeated entries act as weights: 4x bottom, 2x lower-mid, 1x mid, 1x upper
         const BANDS=[
@@ -74,44 +74,76 @@ window.addEventListener("load",()=>{
           [-3.0,-0.8]                                         // upper only 1/8
         ];
         const fish=[];
-        const SPAWN_COUNTS={madai:7,saba:8,aji:7,buri:6,kurodai:6,magochi:6,kasago:5,mebaru:5,sawara:5,hiramasa:5,kihada:5,isaki:5,isaki_young:5,kamasu:5,katakuchi:4,kuchibuto:4,onagagure:4,shibudai:4,suzuki:4,tachiuo:4};
-        function spawnSpecies(list){
+        const SPAWN_COUNTS={madai:14,saba:16,aji:14,buri:12,kurodai:12,magochi:12,kasago:10,mebaru:10,sawara:10,hiramasa:10,kihada:10,isaki:10,isaki_young:10,kamasu:10,katakuchi:8,kuchibuto:8,onagagure:8,shibudai:8,suzuki:8,tachiuo:8};
+        // ---- lazy spawning pool: only fish near the camera exist in the scene ----
+        const SPAWN_RADIUS=30;        // create fish within this distance of camera
+        const DESPAWN_RADIUS=46;      // remove beyond this (hysteresis)
+        const pool=[];                // {sp, size, band} waiting to be materialised
+        const active=[];              // live fish objects
+        function makeSpec(sp){
+          const b0=BANDS[Math.floor(Math.random()*BANDS.length)];
+          return {sp, size:rand(75,165), band:b0,
+                  r:rand(REGION.rMin+3,REGION.rMax-3), a:rand(0,Math.PI*2)};
+        }
+        function materialise(spec){
+          let inst=null;
+          try{inst=createFish(spec.sp,spec.size);}catch(e){return null;}
+          if(!inst)return null;
+          const o=inst.object;
+          const b0=spec.band;
+          o.position.set(Math.cos(spec.a)*spec.r, rand(b0[0],b0[1]), Math.sin(spec.a)*spec.r*0.85-8);
+          o.userData={inst,heading:rand(0,Math.PI*2),speed:rand(0.6,1.5),
+            turnRate:rand(-0.28,0.28),turnTimer:rand(2,6),band:b0,
+            yTarget:rand(b0[0],b0[1]),motionTimer:rand(10,20),
+            motionIdx:Math.floor(Math.random()*MOTION_POOL.length)};
+          try{o.userData.inst.setMotion(MOTION_POOL[o.userData.motionIdx]);}catch(e){}
+          G.add(o);return o;
+        }
+        // build the full spec list (these are cheap: just numbers)
+        function queueSpecies(list){
           for(const sp of list){
-            const cnt=SPAWN_COUNTS[sp]||4;
-            for(let i=0;i<cnt;i++){
-              let inst=null;
-              try{inst=createFish(sp,rand(75,165));}catch(e){continue;}
-              if(!inst)continue;
-              const o=inst.object;
-              const ang0=rand(0,Math.PI*2), rad0=rand(REGION.rMin+3,REGION.rMax-3);
-              const b0=BANDS[Math.floor(Math.random()*BANDS.length)];
-              o.position.set(Math.cos(ang0)*rad0, rand(b0[0],b0[1]), Math.sin(ang0)*rad0*0.85-8);
-              o.userData={
-                inst,
-                heading:rand(0,Math.PI*2),
-                speed:rand(0.6,1.5),
-                turnRate:rand(-0.28,0.28),
-                turnTimer:rand(2,6),
-                band:b0,
-                yTarget:rand(b0[0],b0[1]),
-                motionTimer:rand(10,20),
-                motionIdx:Math.floor(Math.random()*MOTION_POOL.length)
-              };
-              try{o.userData.inst.setMotion(MOTION_POOL[o.userData.motionIdx]);}catch(e){}
-              G.add(o);fish.push(o);
+            const cnt=SPAWN_COUNTS[sp]||6;
+            for(let i=0;i<cnt;i++)pool.push(makeSpec(sp));
+          }
+        }
+        // materialise everything within SPAWN_RADIUS of the camera
+        function fillNear(camPos){
+          if(!camPos)return;
+          for(let i=pool.length-1;i>=0;i--){
+            const s=pool[i];
+            const wx=Math.cos(s.a)*s.r, wz=Math.sin(s.a)*s.r*0.85-8;
+            const d=Math.hypot(wx-camPos.x,wz-camPos.z);
+            if(d<SPAWN_RADIUS&&active.length<60){
+              const o=materialise(s);
+              if(o){active.push(o);pool.splice(i,1);}
+            }
+          }
+        }
+        function cullFar(camPos){
+          if(!camPos)return;
+          for(let i=active.length-1;i>=0;i--){
+            const o=active[i];
+            const d=Math.hypot(o.position.x-camPos.x,o.position.z-camPos.z);
+            if(d>DESPAWN_RADIUS){
+              G.remove(o);
+              try{o.userData.inst.dispose&&o.userData.inst.dispose();}catch(e){}
+              const s=o.userData;
+              pool.push({sp:s.sp||null,size:s.size||120,band:s.band,
+                         r:rand(REGION.rMin+3,REGION.rMax-3),a:rand(0,Math.PI*2)});
+              active.splice(i,1);
             }
           }
         }
         const MOTION_POOL=["swim","power","turn","range"];   // cruising only — no hover, no fishing states
         // phase 1: spawn the species already loaded (instant paint)
-        spawnSpecies(SPECIES_FAST);
+        queueSpecies(SPECIES_FAST);
         // phase 2: background-load the remaining species, then spawn them
         const SPECIES_REST=SPECIES.slice(SPECIES_FAST.length,SPECIES_FAST.length+13);
         kitReady.then(()=>loadFish("assets/fishkit/fish/",SPECIES_REST))
-          .then(()=>{spawnSpecies(SPECIES_REST);console.log("[fauna] phase2 +"+SPECIES_REST.length+" species, total fish "+fish.length);})
+          .then(()=>{queueSpecies(SPECIES_REST);console.log("[fauna] phase2 queued +"+SPECIES_REST.length+" species, pool "+pool.length);})
           .catch(e=>console.warn("[fauna] phase2 skip",e&&e.message));
 
-        let t0=performance.now(),last=t0;
+        let t0=performance.now(),last=t0,u_frame=0;
         (function loop(){
           requestAnimationFrame(loop);
           const now=performance.now(),t=(now-t0)/1000,dt=Math.min((now-last)/1000,0.05);last=now;
@@ -133,7 +165,13 @@ window.addEventListener("load",()=>{
               else{r.mesh.scale.setScalar(0.8+(1-r.life)*13);r.mesh.material.opacity=r.life*0.65;}}
           }
           // real fish: forward cruising with gentle turns and soft boundary steering
-          for(const o of fish){
+          // lazy: materialise/cull only every 30 frames (cheap)
+          u_frame=(u_frame||0)+1;
+          if(u_frame%30===0){
+            fillNear(camera&&camera.position);
+            cullFar(camera&&camera.position);
+          }
+          for(const o of active){
             const u=o.userData;
             // slow turn-rate wander: change the turn rate every few seconds
             u.turnTimer-=dt;
@@ -170,12 +208,12 @@ window.addEventListener("load",()=>{
             // perf tiers unchanged
             const dist=camera?o.position.distanceTo(camera.position):20;
             u.skip=(u.skip||0)+1;
-            if(dist<18){ try{u.inst.update(dt);}catch(e){} }
-            else if(dist<36){ if(u.skip%2===0){ try{u.inst.update(dt*2);}catch(e){} } }
-            else if(dist<60){ if(u.skip%4===0){ try{u.inst.update(dt*4);}catch(e){} } }
+            if(dist<22){ try{u.inst.update(dt);}catch(e){} }
+            else if(dist<40){ if(u.skip%2===0){ try{u.inst.update(dt*2);}catch(e){} } }
+            else if(u.skip%5===0){ try{u.inst.update(dt*5);}catch(e){} }
           }
         })();
-        console.log("[fauna] fish "+fish.length+" | r"+REGION.rMin+"-"+REGION.rMax+" | y"+REGION.yMin+".."+REGION.yMax+" | bands "+BANDS.length+" (seabed ~-7.2)");
+        console.log("[fauna] queued "+pool.length+" specs | r"+REGION.rMin+"-"+REGION.rMax+" | y"+REGION.yMin+".."+REGION.yMax+" | bands "+BANDS.length+" (seabed ~-7.2)");
       }catch(err){console.error("[fauna] INIT ERROR",err&&(err.message||err));}
     });
   }
