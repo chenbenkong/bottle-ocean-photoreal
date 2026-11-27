@@ -4,8 +4,8 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 const rand=(a,b)=>a+Math.random()*(b-a);
 
 window.addEventListener("load",()=>{
-  function wait(){const T=window.__tideline;if(!T||!T.scene)return requestAnimationFrame(wait);init(T.scene);}
-  function init(scene){
+  function wait(){const T=window.__tideline;if(!T||!T.scene)return requestAnimationFrame(wait);init(T.scene,T.camera);}
+  function init(scene,camera){
     const loader=new GLTFLoader(),G=new THREE.Group();G.name="fauna";scene.add(G);
     let loadFish=null,createFish=null,fishStats=null;
     const kitReady=import("../assets/fishkit/fish-kit.js").then(m=>{loadFish=m.loadFish;createFish=m.createFish;fishStats=m.fishStats;console.log("[fauna] fish-kit module ok");})
@@ -40,7 +40,8 @@ window.addEventListener("load",()=>{
 
     // ---- shark (voxel) ----
     // ---- real fish species (fish-kit) ----
-    const SPECIES=["madai","buri","saba","aji","kurodai","magochi","kasago","mebaru","sawara","hiramasa","kihada"];
+    const SPECIES=["madai","saba","aji","buri","kurodai","magochi","kasago","mebaru","sawara","hiramasa","kihada",
+                       "isaki","isaki_young","kamasu","katakuchi","kuchibuto","onagagure","shibudai","suzuki","tachiuo"];
     const fishLoad=kitReady.then(()=>{
       if(!loadFish)return null;
       return loadFish("assets/fishkit/fish/",SPECIES).then(()=>{
@@ -59,8 +60,10 @@ window.addEventListener("load",()=>{
         // fully scattered, no schools: each fish gets its own roaming volume
         // [species, count]  -> 3x previous total (~237 fish)
         const PLAN=[
-          ["madai",26],["saba",30],["aji",26],["buri",20],["kurodai",24],["magochi",22],
-          ["kasago",18],["mebaru",18],["sawara",18],["hiramasa",20],["kihada",20]
+          ["madai",12],["saba",14],["aji",12],["buri",10],["kurodai",10],["magochi",10],
+          ["kasago",9],["mebaru",9],["sawara",9],["hiramasa",9],["kihada",9],
+          ["isaki",8],["isaki_young",8],["kamasu",8],["katakuchi",7],["kuchibuto",7],
+          ["onagagure",7],["shibudai",8],["suzuki",8],["tachiuo",7]
         ];
         // roaming volume: covers most of the sea (radius 4..34, depth -0.6..-3.4)
         const REGION={rMin:4,rMax:34,yMin:-3.4,yMax:-0.6};
@@ -133,7 +136,12 @@ window.addEventListener("load",()=>{
               u.motionIdx=(u.motionIdx+1+Math.floor(Math.random()*(MOTION_POOL.length-1)))%MOTION_POOL.length;
               try{u.inst.setMotion(MOTION_POOL[u.motionIdx]);}catch(e){}
             }
-            try{u.inst.update(dt);}catch(e){}
+            // perf tiers: near=every frame, mid=1/2, far=1/4, beyond=skip
+            const dist=camera?o.position.distanceTo(camera.position):20;
+            u.skip=(u.skip||0)+1;
+            if(dist<18){ try{u.inst.update(dt);}catch(e){} }
+            else if(dist<36){ if(u.skip%2===0){ try{u.inst.update(dt*2);}catch(e){} } }
+            else if(dist<60){ if(u.skip%4===0){ try{u.inst.update(dt*4);}catch(e){} } }
           }
         })();
         console.log("[fauna] scattered real fish: "+fish.length+" individuals, region r"+REGION.rMin+"-"+REGION.rMax+", y"+REGION.yMin+"-"+REGION.yMax);

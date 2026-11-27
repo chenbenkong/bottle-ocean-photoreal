@@ -1122,7 +1122,7 @@ function init() {
   camera.position.set(6.8, 3.1, 13);
 
   let degraded = 0;
-  const basePixelRatio = () => Math.min(devicePixelRatio, mobile ? 1.0 : 1.3) * Math.pow(0.75, degraded);
+  const basePixelRatio = () => Math.min(devicePixelRatio, mobile ? 1.0 : 1.1) * Math.pow(0.75, degraded);
   renderer.setSize(innerWidth, innerHeight);
   renderer.setPixelRatio(basePixelRatio());
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -2117,6 +2117,8 @@ function init() {
 
   // Headless debug/capture hook (no-op for normal viewing)
   window.__tideline = {
+    camera,
+    renderer,
     state,
     sky: skyUniforms,
     water: waterUniforms,
