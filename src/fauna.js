@@ -42,15 +42,12 @@ window.addEventListener("load",()=>{
     // ---- real fish species (fish-kit) ----
     const SPECIES=["madai","saba","aji","buri","kurodai","magochi","kasago","mebaru","sawara","hiramasa","kihada",
                        "isaki","isaki_young","kamasu","katakuchi","kuchibuto","onagagure","shibudai","suzuki","tachiuo"];
+    const SPECIES_FAST=SPECIES.slice(0,6);
     const fishLoad=kitReady.then(()=>{
       if(!loadFish)return null;
-      return loadFish("assets/fishkit/fish/",SPECIES).then(()=>{
-        if(fishStats){
-          const ok=SPECIES.filter(s=>{try{return !!fishStats(s);}catch(e){return false;}});
-          const bad=SPECIES.filter(s=>ok.indexOf(s)<0);
-          console.log("[fauna] registered species:",ok.length+"/"+SPECIES.length, bad.length?("MISSING: "+bad.join(",")):"");
-        }
-      }).catch(e=>{console.error("[fauna] fishkit load fail",e&&e.message);});
+      return loadFish("assets/fishkit/fish/",SPECIES_FAST)
+        .then(()=>{console.log("[fauna] fast batch ready: "+SPECIES_FAST.join(","));})
+        .catch(e=>{console.error("[fauna] fast batch fail",e&&e.message);});
     });
 
     Promise.all([fishLoad]).then(()=>{
@@ -66,34 +63,47 @@ window.addEventListener("load",()=>{
           ["onagagure",4],["shibudai",4],["suzuki",4],["tachiuo",4]
         ];
         // roaming volume: covers most of the sea (radius 4..34, depth -0.6..-3.4)
-        const REGION={rMin:4,rMax:34,yMin:-3.4,yMax:-0.6};
+        // full water column: surface -0.5 down to just above the seabed (-7.2)
+        const REGION={rMin:4,rMax:34,yMin:-6.6,yMax:-0.5};
+        // depth bands: bottom-dwellers / mid / upper / near-surface
+        const BANDS=[[-6.4,-4.6],[-5.2,-2.8],[-3.6,-1.2],[-1.8,-0.5]];
         const fish=[];
-        const MOTION_POOL=["swim","power","turn","range"];   // cruising only — no hover, no fishing states
-        for(const [sp,cnt] of PLAN){
-          for(let i=0;i<cnt;i++){
-            let inst=null;
-            try{inst=createFish(sp,rand(75,165));}catch(e){continue;}
-            if(!inst)continue;
-            const o=inst.object;
-            // independent roaming: each fish has its own orbit + vertical band + speed
-            // true cruising: each fish swims forward along a heading, slowly turning,
-            // and steers back when it reaches the edge of the region
-            const ang0=rand(0,Math.PI*2), rad0=rand(REGION.rMin+3,REGION.rMax-3);
-            o.position.set(Math.cos(ang0)*rad0, rand(REGION.yMin,REGION.yMax), Math.sin(ang0)*rad0*0.85-8);
-            o.userData={
-              inst,
-              heading:rand(0,Math.PI*2),        // travel direction (radians)
-              speed:rand(0.6,1.5),              // world units per second
-              turnRate:rand(-0.28,0.28),        // gentle continuous turn
-              turnTimer:rand(2,6),
-              yTarget:rand(REGION.yMin,REGION.yMax),
-              motionTimer:rand(10,20),
-              motionIdx:Math.floor(Math.random()*MOTION_POOL.length)
-            };
-            try{o.userData.inst.setMotion(MOTION_POOL[o.userData.motionIdx]);}catch(e){}
-            G.add(o);fish.push(o);
+        const SPAWN_COUNTS={madai:7,saba:8,aji:7,buri:6,kurodai:6,magochi:6,kasago:5,mebaru:5,sawara:5,hiramasa:5,kihada:5,isaki:5,isaki_young:5,kamasu:5,katakuchi:4,kuchibuto:4,onagagure:4,shibudai:4,suzuki:4,tachiuo:4};
+        function spawnSpecies(list){
+          for(const sp of list){
+            const cnt=SPAWN_COUNTS[sp]||4;
+            for(let i=0;i<cnt;i++){
+              let inst=null;
+              try{inst=createFish(sp,rand(75,165));}catch(e){continue;}
+              if(!inst)continue;
+              const o=inst.object;
+              const ang0=rand(0,Math.PI*2), rad0=rand(REGION.rMin+3,REGION.rMax-3);
+              const b0=BANDS[Math.floor(Math.random()*BANDS.length)];
+              o.position.set(Math.cos(ang0)*rad0, rand(b0[0],b0[1]), Math.sin(ang0)*rad0*0.85-8);
+              o.userData={
+                inst,
+                heading:rand(0,Math.PI*2),
+                speed:rand(0.6,1.5),
+                turnRate:rand(-0.28,0.28),
+                turnTimer:rand(2,6),
+                band:b0,
+                yTarget:rand(b0[0],b0[1]),
+                motionTimer:rand(10,20),
+                motionIdx:Math.floor(Math.random()*MOTION_POOL.length)
+              };
+              try{o.userData.inst.setMotion(MOTION_POOL[o.userData.motionIdx]);}catch(e){}
+              G.add(o);fish.push(o);
+            }
           }
         }
+        const MOTION_POOL=["swim","power","turn","range"];   // cruising only — no hover, no fishing states
+        // phase 1: spawn the species already loaded (instant paint)
+        spawnSpecies(SPECIES_FAST);
+        // phase 2: background-load the remaining species, then spawn them
+        const SPECIES_REST=SPECIES.slice(SPECIES_FAST.length,SPECIES_FAST.length+13);
+        kitReady.then(()=>loadFish("assets/fishkit/fish/",SPECIES_REST))
+          .then(()=>{spawnSpecies(SPECIES_REST);console.log("[fauna] phase2 +"+SPECIES_REST.length+" species, total fish "+fish.length);})
+          .catch(e=>console.warn("[fauna] phase2 skip",e&&e.message));
 
         let t0=performance.now(),last=t0;
         (function loop(){
@@ -139,7 +149,7 @@ window.addEventListener("load",()=>{
             o.position.z+=Math.sin(u.heading)*v*dt*0.85;
             // keep inside depth band with slow vertical drift
             const dy=u.yTarget-o.position.y;
-            if(Math.abs(dy)<0.15)u.yTarget=rand(REGION.yMin,REGION.yMax);
+            if(Math.abs(dy)<0.15)u.yTarget=rand(u.band[0],u.band[1]);
             o.position.y+=Math.sign(dy)*Math.min(Math.abs(dy),0.35*dt);
             // face travel direction (model faces +Z, back up)
             o.rotation.y=-u.heading+Math.PI/2;
